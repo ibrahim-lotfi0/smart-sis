@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Smart SIS | Instructor Dashboard</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="bg-animated"></div>
+<div class="dashboard">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+      <div class="sidebar-logo-text"><h2>Smart SIS</h2><p>Instructor Portal</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <p class="nav-section-title">Main</p>
+      <a class="nav-link active" data-section="sec-overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <a class="nav-link" data-section="sec-courses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        My Courses
+      </a>
+      <a class="nav-link" data-section="sec-students">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Course Students
+      </a>
+      <p class="nav-section-title">Management</p>
+      <a class="nav-link" data-section="sec-sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Sessions & Attendance
+      </a>
+      <a class="nav-link" data-section="sec-grading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Grading
+      </a>
+      <a class="nav-link" data-section="sec-tas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Manage TAs
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebar-user-avatar">IN</div>
+        <div><div class="user-name" id="sidebar-user-name">Instructor</div><div class="user-role" id="sidebar-user-role">Faculty</div></div>
+        <button class="logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title"><h1 id="topbar-section-title">Overview</h1><p id="topbar-date"></p></div>
+      <div class="topbar-right"><span class="topbar-time" id="topbar-time"></span><span class="topbar-badge">Instructor</span></div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Overview -->
+      <section class="page-section active" id="sec-overview">
+        <div class="stats-grid">
+          <div class="stat-card fade-up">
+            <div class="stat-card-header">
+              <div class="stat-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+              </div>
+              <div class="stat-trend up">Active</div>
+            </div>
+            <div class="stat-value" id="stat-courses">—</div>
+            <div class="stat-label">My Courses</div>
+          </div>
+
+          <div class="stat-card fade-up">
+            <div class="stat-card-header">
+              <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="stat-trend up">+8%</div>
+            </div>
+            <div class="stat-value" id="stat-students">—</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+
+          <div class="stat-card fade-up">
+            <div class="stat-card-header">
+              <div class="stat-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="stat-trend down">Action Needed</div>
+            </div>
+            <div class="stat-value" id="stat-highrisk">—</div>
+            <div class="stat-label">High Risk Alerts</div>
+          </div>
+
+          <div class="stat-card fade-up">
+            <div class="stat-card-header">
+              <div class="stat-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <div class="stat-trend up">Pending</div>
+            </div>
+            <div class="stat-value" id="stat-pending">—</div>
+            <div class="stat-label">Ungraded Tasks</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:2rem;">
+          <div class="card fade-up">
+            <div class="card-header">
+              <div class="card-title">Grade Distribution</div>
+              <div class="card-subtitle">Performance across all courses</div>
+            </div>
+            <div class="card-body" style="height:300px;">
+              <canvas id="performanceChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card fade-up">
+            <div class="card-header">
+              <div class="card-title">🚨 Intervention Needed</div>
+              <button class="btn-sm btn-sm-ghost" onclick="document.querySelector('[data-section=sec-students]').click()">View All</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Course</th><th>CGPA</th><th>Risk</th></tr></thead>
+                <tbody id="overview-risk-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- My Courses -->
+      <!-- Fields: CourseID, Code, Name, Credits, DepartmentName, Enrolled, MaxCapacity -->
+      <section class="page-section" id="sec-courses">
+        <div class="card">
+          <div class="card-header"><div class="card-title">My Courses</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Code</th><th>Name</th><th>Credits</th><th>Department</th><th>Enrolled</th><th>Capacity</th></tr></thead>
+              <tbody id="courses-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Students -->
+      <!-- Fields: RegistrationID, StudentID, FullName, Email, Code, CourseName, Semester, Status, CurrentLevel, NationalID, Mobile, Gender, CGPA, Attendance, RiskLevel, EnrollmentYear -->
+      <section class="page-section" id="sec-students">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Students in My Courses</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Course</th><th>Semester</th><th>Level</th><th>CGPA</th><th>Attendance</th><th>Status</th><th>Risk</th></tr></thead>
+              <tbody id="students-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sessions -->
+      <!-- Fields: SessionID, Date, Time, Code, Type, Present, Absent -->
+      <section class="page-section" id="sec-sessions">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Create New Session</div></div>
+            <div class="card-body">
+              <form id="session-form" style="display:grid; gap:0.875rem;">
+                <div><label class="dash-label">Course</label><select class="dash-select" id="sess-course" required></select></div>
+                <div><label class="dash-label">Date</label><input class="dash-input" type="date" id="sess-date" required/></div>
+                <div><label class="dash-label">Session Type</label>
+                  <select class="dash-select" id="sess-type">
+                    <option>Lecture</option><option>Section</option><option>Lab</option>
+                  </select>
+                </div>
+                <div><label class="dash-label">Start Time</label><input class="dash-input" type="time" id="sess-start" required/></div>
+                <div><label class="dash-label">End Time</label><input class="dash-input" type="time" id="sess-end" required/></div>
+                <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">💾 Save Session</button>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Sessions History</div></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Time</th><th>Course</th><th>Type</th><th>Present</th><th>Absent</th><th>Details</th></tr></thead>
+                <tbody id="recent-sessions-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Grading -->
+      <!-- Fields: RegistrationID, FullName, Email, CourseCode, CourseName, NumericGrade, LetterGrade, GradePoints, GradedAt -->
+      <section class="page-section" id="sec-grading">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Student Grading</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary)">Score = Midterm + Quiz. Grade calculated automatically.</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Student</th><th>Email</th><th>Course</th><th>Current Grade</th><th>Letter</th><th>Points</th><th>Graded At</th><th>New Score</th><th>Save</th></tr></thead>
+              <tbody id="grading-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Manage TAs -->
+      <!-- Fields: InstructorID, FullName, Department / CourseID, Code, CourseName, TAName, TAID -->
+      <section class="page-section" id="sec-tas">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Assign New TA</div></div>
+            <div class="card-body">
+              <form id="ta-form" style="display:grid; gap:0.875rem;">
+                <div><label class="dash-label">Course</label><select class="dash-select" id="ta-course" required></select></div>
+                <div><label class="dash-label">Select TA</label><select class="dash-select" id="ta-list" required></select></div>
+                <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">Assign TA</button>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Currently Assigned TAs</div></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>TA Name</th><th>Course Code</th><th>Course Name</th></tr></thead>
+                <tbody id="assigned-tas-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Modal -->
+<div id="attendance-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width:560px;">
+    <div class="modal-header"><h3 id="att-modal-title" class="modal-title">Session Attendance</h3></div>
+    <div class="table-wrap" style="max-height:400px; overflow-y:auto; padding:1rem;">
+      <table>
+        <thead><tr><th>Student Name</th><th>Status</th><th>Check-in Time</th></tr></thead>
+        <tbody id="att-modal-body"></tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-sm-ghost" onclick="document.getElementById('attendance-modal').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/chatbot.js"></script>
+<script>
+const auth = requireAuth();
+if (auth) {
+  initClock(); initUserInfo(auth);
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString();
+
+  async function loadData() {
+    try {
+      const [courses, students, sessions, pendingGrades, availableTAs, assignedTAs] = await Promise.all([
+        instructorApi.courses(),
+        instructorApi.students(),
+        instructorApi.sessions(),
+        instructorApi.pendingGrades(),
+        instructorApi.availableTAs(),
+        instructorApi.assignedTAs()
+      ]);
+
+      // ── Stats ──
+      document.getElementById('stat-courses').textContent  = courses.length;
+      document.getElementById('stat-students').textContent = students.length;
+      document.getElementById('stat-highrisk').textContent = students.filter(s => s.RiskLevel === 'High').length;
+      document.getElementById('stat-pending').textContent  = pendingGrades.filter(p => !p.NumericGrade).length;
+
+      // ── Overview: High/Medium Risk ──
+      const atRisk = students.filter(s => s.RiskLevel === 'High' || s.RiskLevel === 'Medium');
+      document.getElementById('overview-risk-body').innerHTML = atRisk.slice(0, 10).map(s => `
+        <tr>
+          <td>
+            <div style="font-weight:600">${s.FullName}</div>
+            <div style="font-size:0.7rem;opacity:0.6">${s.Email || ''}</div>
+          </td>
+          <td><span class="badge badge-purple">${s.Code || '—'}</span></td>
+          <td><strong>${parseFloat(s.CGPA || 0).toFixed(2)}</strong></td>
+          <td>${riskBadge(s.RiskLevel)}</td>
+        </tr>`).join('') || `<tr><td colspan="4" style="text-align:center;opacity:0.5;padding:2rem">No high-risk students 🎉</td></tr>`;
+
+      initCharts();
+
+      // ── Courses: CourseID, Code, Name, Credits, DepartmentName, Enrolled, MaxCapacity ──
+      document.getElementById('courses-body').innerHTML = courses.map(c => `
+        <tr>
+          <td><strong>${c.Code}</strong></td>
+          <td>${c.Name}</td>
+          <td>${c.Credits} cr</td>
+          <td>${c.DepartmentName || c.Department || '—'}</td>
+          <td><span class="badge badge-blue">${c.Enrolled || 0}</span></td>
+          <td>${c.MaxCapacity || 30}</td>
+        </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;opacity:0.5;padding:2rem">No courses assigned</td></tr>`;
+
+      // ── Students: all fields from DB ──
+      document.getElementById('students-body').innerHTML = students.map(s => {
+        const att = parseFloat(s.Attendance || 0);
+        const cgpa = parseFloat(s.CGPA || 0);
+        const attWarning = att < 75 ? ` <span title="Article 10.9: At risk of being barred from Exams" style="color:#d63031; font-weight:bold; font-size:0.8rem;"><br>🚫 Barred Risk</span>` : '';
+        const cgpaWarning = cgpa < 2.0 ? ` <span title="Article 23: Academic Probation" style="color:#d63031; font-weight:bold; font-size:0.8rem;"><br>⚠️ Probation</span>` : '';
+        
+        return `
+        <tr ${att < 75 || cgpa < 2.0 ? 'style="background-color: rgba(214,48,49,0.05); border-left: 3px solid #d63031;"' : ''}>
+          <td><strong>${s.FullName}</strong></td>
+          <td style="font-size:0.78rem;color:var(--text-secondary)">${s.Email || '—'}</td>
+          <td>${s.Mobile || '—'}</td>
+          <td>${s.Code || '—'}</td>
+          <td>${s.Semester || '—'}</td>
+          <td><span class="badge badge-blue">L${s.CurrentLevel || '—'}</span></td>
+          <td style="line-height:1.2;"><strong>${cgpa.toFixed(2)}</strong>${cgpaWarning}</td>
+          <td style="line-height:1.2;"><strong>${att.toFixed(1)}%</strong>${attWarning}</td>
+          <td>${statusBadge(s.Status)}</td>
+          <td>${riskBadge(s.RiskLevel)}</td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="10" style="text-align:center;opacity:0.5;padding:2rem">No students found</td></tr>`;
+
+      // ── Sessions: SessionID, Date, Time, Code, Type, Present, Absent ──
+      document.getElementById('recent-sessions-body').innerHTML = sessions.map(s => `
+        <tr>
+          <td>${formatDate(s.Date)}</td>
+          <td>${s.Time || '—'}</td>
+          <td><strong>${s.Code}</strong></td>
+          <td><span class="badge badge-purple">${s.Type || 'Lecture'}</span></td>
+          <td><span class="badge badge-green">${s.Present}</span></td>
+          <td><span class="badge badge-red">${s.Absent || 0}</span></td>
+          <td><button class="btn-sm btn-sm-blue" onclick="viewAttendance(${s.SessionID}, '${s.Code}')">View</button></td>
+        </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;opacity:0.5;padding:2rem">No sessions yet</td></tr>`;
+
+      // ── Grading: RegistrationID, FullName, Email, CourseCode, NumericGrade, LetterGrade, GradePoints, GradedAt ──
+      document.getElementById('grading-body').innerHTML = pendingGrades.map(p => `
+        <tr>
+          <td><strong>${p.FullName}</strong></td>
+          <td style="font-size:0.78rem">${p.Email || '—'}</td>
+          <td>${p.CourseCode}</td>
+          <td>${p.NumericGrade !== null && p.NumericGrade !== undefined ? p.NumericGrade : '—'}</td>
+          <td>${gradeBadge(p.LetterGrade)}</td>
+          <td>${p.GradePoints !== null && p.GradePoints !== undefined ? parseFloat(p.GradePoints).toFixed(1) : '—'}</td>
+          <td style="font-size:0.75rem">${p.GradedAt ? formatDate(p.GradedAt) : 'Not graded'}</td>
+          <td><input type="number" id="g-s-${p.RegistrationID}" placeholder="0–100" min="0" max="100" class="dash-input" style="width:80px;padding:0.3rem;"></td>
+          <td><button class="btn-sm btn-sm-primary" onclick="saveGrade(${p.RegistrationID})">Save</button></td>
+        </tr>`).join('') || `<tr><td colspan="9" style="text-align:center;opacity:0.5;padding:2rem">All grades up to date ✓</td></tr>`;
+
+      // ── Populate course selects ──
+      const courseOptions = courses.map(c => `<option value="${c.CourseID}">${c.Code} – ${c.Name}</option>`).join('');
+      document.getElementById('sess-course').innerHTML = courseOptions;
+      document.getElementById('ta-course').innerHTML   = courseOptions;
+
+      // ── TAs: InstructorID, FullName, Department ──
+      document.getElementById('ta-list').innerHTML = availableTAs.map(t =>
+        `<option value="${t.InstructorID}">${t.FullName} (${t.Department})</option>`
+      ).join('') || '<option disabled>No TAs available in your department</option>';
+
+      // ── Assigned TAs: CourseID, Code, CourseName, TAName ──
+      document.getElementById('assigned-tas-body').innerHTML = assignedTAs.map(t => `
+        <tr>
+          <td>${t.TAName}</td>
+          <td><strong>${t.Code}</strong></td>
+          <td>${t.CourseName}</td>
+        </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;opacity:0.5;padding:2rem">No TAs assigned yet</td></tr>`;
+
+    } catch(e) { console.error('Load Error:', e); }
+  }
+
+  function initCharts() {
+    const ctx = document.getElementById('performanceChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (window.perfChart) window.perfChart.destroy();
+    
+    window.perfChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['A', 'B', 'C', 'D', 'F'],
+        datasets: [{
+          label: 'Students',
+          data: [15, 25, 10, 5, 2],
+          backgroundColor: [
+            'rgba(0, 184, 148, 0.7)',
+            'rgba(108, 92, 231, 0.7)',
+            'rgba(9, 132, 227, 0.7)',
+            'rgba(253, 203, 110, 0.7)',
+            'rgba(214, 48, 49, 0.7)'
+          ],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
+          x: { grid: { display: false }, border: { display: false } }
+        }
+      }
+    });
+  }
+
+  // View Attendance
+  window.viewAttendance = async (sessionId, courseCode) => {
+    try {
+      const list = await instructorApi.sessionAttendance(sessionId);
+      document.getElementById('att-modal-title').textContent = `Attendance – ${courseCode}`;
+      // Fields: FullName, Status, AttendanceTime
+      document.getElementById('att-modal-body').innerHTML = list.map(a => `
+        <tr>
+          <td>${a.FullName}</td>
+          <td>${statusBadge(a.Status)}</td>
+          <td>${a.AttendanceTime ? new Date(a.AttendanceTime).toLocaleTimeString() : '—'}</td>
+        </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;opacity:0.5">No attendance records</td></tr>`;
+      document.getElementById('attendance-modal').classList.add('show');
+    } catch(err) { alert(err.message); }
+  };
+
+  // Save Grade (score = single total out of 100)
+  window.saveGrade = async (regId) => {
+    const score = document.getElementById(`g-s-${regId}`)?.value;
+    if (!score) return alert('Please enter a score.');
+    try {
+      // We pass midterm = score, quiz = 0 (backend adds them)
+      await instructorApi.saveGrades({ registrationId: regId, midterm: parseFloat(score), quiz: 0 });
+      loadData();
+    } catch(err) { alert(err.message); }
+  };
+
+  // Session Form
+  document.getElementById('session-form').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await instructorApi.createSession({
+        courseId:    document.getElementById('sess-course').value,
+        sessionDate: document.getElementById('sess-date').value,
+        startTime:   document.getElementById('sess-start').value,
+        endTime:     document.getElementById('sess-end').value,
+        sessionType: document.getElementById('sess-type').value,
+        qrCode: 'QR-' + Math.random().toString(36).substr(2, 8).toUpperCase()
+      });
+      e.target.reset();
+      loadData();
+    } catch(err) { alert(err.message); }
+  };
+
+  // TA Form
+  document.getElementById('ta-form').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await instructorApi.assignTA({
+        courseId: document.getElementById('ta-course').value,
+        taId:     document.getElementById('ta-list').value
+      });
+      loadData();
+    } catch(err) { alert(err.message); }
+  };
+
+  // Navigation
+  loadData();
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.addEventListener('click', () => {
+      document.querySelectorAll('.nav-link, .page-section').forEach(el => el.classList.remove('active'));
+      l.classList.add('active');
+      const sec = document.getElementById(l.dataset.section);
+      if (sec) sec.classList.add('active');
+      document.getElementById('topbar-section-title').textContent = l.textContent.trim();
+    });
+  });
+}
+</script>
+</body>
+</html>

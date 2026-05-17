@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>INNOVATION UNIVERSITY SYSTEM (IUS) - ROADMAP REPORT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@400;600;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0612;
+            --secondary: #120c24;
+            --accent: #fdb913;
+            --accent-light: rgba(253, 185, 19, 0.1);
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border: rgba(253, 185, 19, 0.2);
+            --glass-bg: rgba(18, 12, 36, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', 'Outfit', sans-serif;
+            background-color: var(--primary);
+            color: var(--text);
+            line-height: 1.8;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Print Button Floating */
+        .print-btn-container {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 10000;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #ffc837 100%);
+            color: #000;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1rem;
+            font-weight: 900;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(253, 185, 19, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(253, 185, 19, 0.5);
+        }
+
+        /* Page Layout */
+        .page {
+            max-width: 1100px;
+            margin: 50px auto;
+            background: var(--glass-bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 60px 80px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Cover Page Styling */
+        .cover-page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            padding: 80px 40px;
+            margin: 0 auto;
+            max-width: 1000px;
+            position: relative;
+        }
+
+        .cover-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(253, 185, 19, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .logo-box {
+            z-index: 1;
+        }
+
+        .logo-box img {
+            height: 110px;
+            filter: drop-shadow(0 0 25px rgba(253, 185, 19, 0.4));
+            margin-bottom: 20px;
+        }
+
+        .logo-box h2 {
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+            color: var(--accent);
+            font-weight: 900;
+        }
+
+        .title-box {
+            z-index: 1;
+            margin: 40px 0;
+        }
+
+        .title-box h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.3;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-box p {
+            font-size: 1.4rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+
+        .cover-meta {
+            width: 100%;
+            border-top: 1px solid var(--border);
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            z-index: 1;
+        }
+
+        .cover-meta strong {
+            color: var(--accent);
+        }
+
+        /* Section Headings */
+        h2.section-title {
+            font-size: 1.8rem;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 800;
+        }
+
+        h2.section-title i {
+            font-size: 1.5rem;
+        }
+
+        p.intro-text {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        /* Tables */
+        table.roadmap-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+
+        table.roadmap-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--accent);
+            padding: 18px 20px;
+            text-align: right;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        table.roadmap-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        table.roadmap-table tr:hover td {
+            background: rgba(253, 185, 19, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-done {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .badge-progress {
+            background: rgba(253, 185, 19, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(253, 185, 19, 0.2);
+        }
+
+        .badge-todo {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Roles Cards */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .role-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .role-card h3 {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-card h3 i {
+            color: var(--accent);
+        }
+
+        .role-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .role-card ul li {
+            position: relative;
+            padding-right: 20px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .role-card ul li::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+
+        /* Alert Boxes */
+        .alert-box {
+            background: rgba(253, 185, 19, 0.05);
+            border-right: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .alert-box i {
+            color: var(--accent);
+            font-size: 1.4rem;
+            margin-top: 3px;
+        }
+
+        .alert-box div h4 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .alert-box div p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Footer bottom */
+        .footer-note {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body {
+                background-color: #fff !important;
+                color: #000 !important;
+                font-size: 12pt;
+            }
+
+            .print-btn-container {
+                display: none !important;
+            }
+
+            .page {
+                box-shadow: none !important;
+                border: none !important;
+                background: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                page-break-after: always;
+                max-width: 100% !important;
+            }
+
+            .cover-page {
+                height: 100% !important;
+                page-break-after: always;
+            }
+
+            .title-box h1 {
+                background: none !important;
+                -webkit-text-fill-color: #000 !important;
+                color: #000 !important;
+            }
+
+            h2.section-title {
+                color: #120c24 !important;
+                border-bottom: 2px solid #000 !important;
+            }
+
+            table.roadmap-table th {
+                background: #f0f0f0 !important;
+                color: #000 !important;
+                border-bottom: 2px solid #000 !important;
+            }
+
+            table.roadmap-table td {
+                border-bottom: 1px solid #ddd !important;
+                color: #000 !important;
+            }
+
+            .badge {
+                border: 1px solid #000 !important;
+                background: none !important;
+                color: #000 !important;
+            }
+
+            .role-card {
+                border: 1px solid #ccc !important;
+                background: none !important;
+                box-shadow: none !important;
+                color: #000 !important;
+            }
+
+            .role-card h3 {
+                color: #000 !important;
+            }
+
+            .alert-box {
+                border-right: 4px solid #000 !important;
+                background: #f9f9f9 !important;
+                color: #000 !important;
+            }
+
+            .alert-box div h4 {
+                color: #000 !important;
+            }
+
+            .cover-meta,
+            .footer-note {
+                color: #666 !important;
+                border-top: 1px solid #000 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Floating Print Button -->
+    <div class="print-btn-container">
+        <button class="print-btn" onclick="window.print()">
+            <i class="fas fa-file-pdf"></i> طباعة كـ PDF
+        </button>
+    </div>
+
+    <!-- COVER PAGE -->
+    <div class="cover-page">
+        <div class="cover-bg"></div>
+
+        <div class="logo-box">
+            <img src="Home1/images/logo1.png" alt="IU Logo" onerror="this.src='Home1/images/img.jpg'">
+            <h2>INNOVATION UNIVERSITY</h2>
+        </div>
+
+        <div class="title-box">
+            <h1>INNOVATION UNIVERSITY SYSTEM</h1>
+            <p>خارطة الطريق التقنية لتطوير الواجهات الأمامية الموحدة</p>
+        </div>
+
+        <div class="cover-meta">
+            <div>الجهة المستهدفة: <strong>كلية الحاسبات وتكنولوجيا المعلومات (FCIT)</strong></div>
+            <div>تاريخ الإصدار: <strong>17 مايو 2026</strong></div>
+            <div>إعداد: <strong>Quantix Software Company</strong></div>
+        </div>
+    </div>
+
+    <!-- PAGE 1: OVERVIEW & GRID -->
+    <div class="page">
+        <h2 class="section-title"><i class="fas fa-chart-line"></i> 1. نظرة عامة والوضع الحالي للأنظمة (Status Board)
+        </h2>
+        <p class="intro-text">
+            تهدف هذه الخطة إلى تركيز طاقات التطوير بنسبة 100% على بناء واجهات أمامية متكاملة لـ 3 بوابات رئيسية قبل
+            البدء في مرحلة ربط قواعد البيانات الخلفية. هذا يضمن إخراج منصة خالية من الأخطاء وذات تجربة مستخدم مبهرة.
+        </p>
+
+        <table class="roadmap-table">
+            <thead>
+                <tr>
+                    <th>البوابة المستهدفة</th>
+                    <th>الصفحة / الجزء</th>
+                    <th>الحالة</th>
+                    <th>تفاصيل ما تم إنجازه بالكامل</th>
+                    <th>الخطوة القادمة (المتبقي في الواجهات)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>بوابة الطالب</strong></td>
+                    <td>لوحة التحكم (Dashboard)</td>
+                    <td><span class="badge badge-done"><i class="fas fa-check"></i> مكتمل</span></td>
+                    <td>إحصائيات كاملة، شريط جانبي متناسق، رسوم بيانية تفاعلية.</td>
+                    <td>ربط الحقول محلياً مع الذاكرة المؤقتة.</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>النتائج الأكاديمية (Results)</td>
+                    <td><span class="badge badge-done"><i class="fas fa-check"></i> مكتمل</span></td>
+                    <td>تأسيس GPA، تفصيل الدرجات، محاكاة طباعة السجل، ورسومات تقدم بيانية.</td>
+                    <td>ربط زر التحميل الفوري بصيغة PDF.</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>الواجبات والتسليمات</td>
+                    <td><span class="badge badge-done"><i class="fas fa-check"></i> مكتمل</span></td>
+                    <td>سحب وإفلات، تقويم مواعيد نهائية، بطاقات متباينة الأهمية.</td>
+                    <td>تخزين حالة التسليمات في الـ LocalStorage.</td>
+                </tr>
+                <tr>
+                    <td><strong>بوابة المشرف (Admin)</strong></td>
+                    <td>لوحة الإدارة والرصد</td>
+                    <td><span class="badge badge-done"><i class="fas fa-check"></i> مكتمل</span></td>
+                    <td>الداشبورد الكلية، رصد الحضور لجميع الدفعات، تحليلات تفاعلية.</td>
+                    <td>بناء واجهة إدارة الطلاب والمواد (CRUD).</td>
+                </tr>
+                <tr>
+                    <td><strong>بوابة المحاضر</strong></td>
+                    <td>لوحة الأستاذ الجامعي</td>
+                    <td><span class="badge badge-progress"><i class="fas fa-spinner"></i> قيد التطوير</span></td>
+                    <td>تم تأسيس الهيكل العام للداشبورد والشريط الجانبي.</td>
+                    <td>تحديث التنسيق العام ليتوافق مع نظام "Royal Glass".</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>رصد درجات الطلاب</td>
+                    <td><span class="badge badge-todo"><i class="fas fa-clock"></i> متبقي</span></td>
+                    <td>-</td>
+                    <td>تصميم جدول يشبه الإكسل لإدخال درجات الطلاب.</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>دفتر الحضور والغياب</td>
+                    <td><span class="badge badge-todo"><i class="fas fa-clock"></i> متبقي</span></td>
+                    <td>-</td>
+                    <td>تصميم قائمة بأسماء الطلاب مع خانات اختيار تفاعلية للحضور.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="alert-box">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <h4>توجيه هام للمرحلة الأولى</h4>
+                <p>تم الانتهاء تماماً من ضبط اللمسات الجمالية والوظيفية لبوابة الطالب ونتائجها وجدولها وحضورها، وكذلك
+                    أدوات التحكم الخاصة بالمشرف. المرحلة الحالية تركز بالكامل على بناء بوابة المحاضر المتبقية كواجهات
+                    متناسقة.</p>
+            </div>
+        </div>
+
+        <div class="footer-note">INNOVATION UNIVERSITY SYSTEM — PAGE 1 OF 3</div>
+    </div>
+
+    <!-- PAGE 2: TEAM ROLES & INTERACTIVE FLOW -->
+    <div class="page">
+        <h2 class="section-title"><i class="fas fa-users"></i> 2. توزيع المهام والأدوار البرمجية المقترحة</h2>
+        <p class="intro-text">
+            لإنجاز العمل بأعلى كفاءة وسرعة، نقترح توزيع العمل بين أفراد الفريق كالتالي (أو تطبيقها كمطور واحد في فترات
+            زمنية متعاقبة):
+        </p>
+
+        <div class="roles-grid">
+            <div class="role-card">
+                <h3><i class="fas fa-paint-brush"></i> 1. مهندس الواجهات والتصميم (UI/UX)</h3>
+                <ul>
+                    <li>تنسيق بوابة المحاضر لتتطابق مع الستايل الكحلي والذهبي الفاخر لباقي المنصة.</li>
+                    <li>ضمان مرونة وتناسق الجداول والرسومات البيانية على أحجام شاشات الجوال.</li>
+                    <li>إدراج تأثيرات الحركة المصغرة (hover effects & micro-animations).</li>
+                </ul>
+            </div>
+            <div class="role-card">
+                <h3><i class="fas fa-code"></i> 2. مطور التفاعل والبيانات المحلية (JS Specialist)</h3>
+                <ul>
+                    <li>بناء ملف `mockStore.js` ليعمل كـ "قاعدة بيانات محلية مؤقتة" في متصفح العميل (LocalStorage).</li>
+                    <li>تأمين عملية تسجيل الدخول الوهمية وحفظ الـ Token وتوجيه المستخدمين حسب رتبهم.</li>
+                    <li>تحديث رسومات Chart.js بمجرد تغيير درجات الطالب أو نسب حضوره من لوحة المشرف/الأستاذ.</li>
+                </ul>
+            </div>
+            <div class="role-card">
+                <h3><i class="fas fa-shield-halved"></i> 3. مسؤول الجودة والتكامل والـ QA</h3>
+                <ul>
+                    <li>تشغيل سكربتات التدقيق التلقائي للروابط لضمان خلو 100 صفحة من أي روابط مكسورة.</li>
+                    <li>توحيد الهيدر والفوتر والـ favicon بشعار الكلية عبر كافة مستويات ومجلدات المنصة.</li>
+                    <li>محاكاة سيناريوهات الاستخدام اليومي للتأكد من سلاسة وسرعة التحميل.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-title"><i class="fas fa-route"></i> 3. المسار الهندسي لتبادل البيانات في الواجهات (Mock Flow)
+        </h2>
+        <p class="intro-text">
+            سيعتمد التطبيق بالكامل على محاكي بيانات موحد يعمل بالذاكرة المؤقتة. هذا المسار الذكي سيمكننا لاحقاً من ربط
+            المنصة بأي قاعدة بيانات حقيقية (Supabase أو SQL Server) بمجرد استبدال دوال جلب البيانات المحلية بـ (Fetch
+            API calls) فقط!
+        </p>
+
+        <div
+            style="text-align: center; margin: 30px 0; background: rgba(0,0,0,0.3); border-radius: 20px; padding: 30px; border: 1px solid var(--glass-border);">
+            <div style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 20px;">المخطط الهندسي لتدفق
+                البيانات (System Architecture Flowchart)</div>
+            <div class="mermaid" style="display: flex; justify-content: center; direction: ltr;">
+                graph TD
+                classDef portals fill:#120c24,stroke:#fdb913,stroke-width:2px,color:#fff;
+                classDef storage fill:#22c55e,stroke:#fff,stroke-width:2px,color:#000;
+                classDef backend fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff,stroke-dasharray: 5 5;
+
+                A[Admin Dashboard]:::portals
+                B[Instructor Portal]:::portals
+                C[Student Portal]:::portals
+
+                D[(Local Storage Mock State)]:::storage
+
+                E[(SQL Server / Supabase)]:::backend
+
+                A -->|Manage Data| D
+                B -->|Input Grades| D
+                D -->|Live Update| C
+                D -.->|Future API| E
+            </div>
+            <p
+                style="color: var(--text-muted); font-size: 0.95rem; margin-top: 20px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                بوابة الطالب، وبوابة المحاضر، وبوابة المشرف تتصل كلها معاً في الوقت الفعلي عبر مستودع بيانات محلي (Mock
+                Data). هذا يضمن عرضاً تفاعلياً مبهراً للمنصة أثناء التقييمات وقبل استبدالها لاحقاً بالبيانات الحية.
+            </p>
+        </div>
+
+        <!-- Mermaid.js for flowchart rendering (v9 stable) -->
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'Cairo' });
+            });
+        </script>
+
+        <div class="footer-note">INNOVATION UNIVERSITY SYSTEM — PAGE 2 OF 3</div>
+    </div>
+
+    <!-- PAGE 3: ROADMAP TIMELINE & PHASES -->
+    <div class="page">
+        <h2 class="section-title"><i class="fas fa-calendar-days"></i> 4. المراحل التنفيذية لإنهاء الواجهات بالكامل
+            (Phased Plan)</h2>
+        <p class="intro-text">
+            خطة العمل الزمنية مقسمة لخطوات واضحة لتسليم بوابات (الطالب، المشرف، المحاضر) بأعلى جودة برمجية:
+        </p>
+
+        <div style="position: relative; padding-right: 30px; border-right: 2px solid var(--border); margin: 30px 0;">
+
+            <div style="margin-bottom: 30px; position: relative;">
+                <div
+                    style="position: absolute; right: -37px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid #fff;">
+                </div>
+                <h4 style="color: #22c55e; font-weight: 800; font-size: 1.1rem;">المرحلة الأولى: تهيئة وحفظ صفحات الطالب
+                    بالكامل (100% مكتملة)</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    تم بناء كامل صفحات النتائج، الجداول، رصد الحضور، الفيديوهات التعليمية، نظام الامتحانات التفاعلي،
+                    صفحات تسليم الواجبات وتوليد الـ Favicons بشكل موحد وقياسية.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px; position: relative;">
+                <div
+                    style="position: absolute; right: -37px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid #fff;">
+                </div>
+                <h4 style="color: var(--accent); font-weight: 800; font-size: 1.1rem;">المرحلة الثانية: بناء بوابة
+                    المحاضر وتنسيقها الملكي (قيد التطوير)</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    تصميم الواجهات الجمالية للوحة المحاضر. بناء شاشة رصد الدرجات الأكاديمية للمواد، وتأسيس صفحة الحضور
+                    اليومية التفاعلية مع تجهيز لوحة الإعلانات السريعة للطلاب.
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px; position: relative;">
+                <div
+                    style="position: absolute; right: -37px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; border: 2px solid #fff;">
+                </div>
+                <h4 style="color: #ef4444; font-weight: 800; font-size: 1.1rem;">المرحلة الثالثة: تطوير لوحة تحكم المشرف
+                    (CRUD) وحركات التفاعل</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    بناء واجهات المشرف الخاصة بإضافة وتعديل وحذف الطلاب والمواد (CRUD Views)، وربطها بشكل مباشر بالـ
+                    LocalStorage لتعمل بكفاءة وحيوية تامة أمام لجان التحكيم.
+                </p>
+            </div>
+
+            <div style="position: relative;">
+                <div
+                    style="position: absolute; right: -37px; top: 0; width: 12px; height: 12px; border-radius: 50%; background: #a855f7; border: 2px solid #fff;">
+                </div>
+                <h4 style="color: #a855f7; font-weight: 800; font-size: 1.1rem;">المرحلة الرابعة: المراجعة الكلية
+                    والتسليم والانتقال للباك اند</h4>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+                    إجراء تدقيق كامل لكافة الروابط والصور، تسليم واجهة النظام بالكامل للكلية كـ (Premium Web Prototype)،
+                    ثم وضع خطة ربط الخوادم (Supabase / SQL Server API Server) وبث البيانات الحية وتطبيق الجوال.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="alert-box" style="background: rgba(34, 197, 94, 0.03); border-right: 4px solid #22c55e;">
+            <i class="fas fa-check-double" style="color: #22c55e;"></i>
+            <div>
+                <h4>نقطة التسليم والجاهزية</h4>
+                <p>باتباع هذا المسار الدقيق للواجهات أولاً، نضمن أن يكون لدينا منتج نهائي رائع وخالٍ تماماً من المشاكل
+                    التصميمية، مما يسهل كثيراً عملية التكامل مع تطبيق الفلاتر والباك اند لاحقاً دون الحاجة لتعديل
+                    التصاميم مجدداً.</p>
+            </div>
+        </div>
+
+        <div class="footer-note">INNOVATION UNIVERSITY SYSTEM — PAGE 3 OF 3</div>
+    </div>
+
+</body>
+
+</html>

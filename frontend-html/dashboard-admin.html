@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Smart SIS | Admin Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ── ML Risk Modal ── */
+    .ml-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ml-modal-overlay.show {
+      display: flex;
+    }
+
+    .ml-modal-card {
+      background: var(--card-bg, #fff);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 480px;
+      max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      animation: fadeUp .25s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ml-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .ml-modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .ml-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      opacity: .6;
+    }
+
+    .ml-close-btn:hover {
+      opacity: 1;
+    }
+
+    /* risk result card */
+    .risk-result-box {
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .risk-result-box.show {
+      display: block;
+    }
+
+    .risk-result-box.Low {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+    }
+
+    .risk-result-box.Medium {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+    }
+
+    .risk-result-box.High {
+      background: #f8d7da;
+      border-left: 4px solid #dc3545;
+    }
+
+    .risk-level-text {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: .25rem;
+    }
+
+    .risk-conf-text {
+      font-size: .85rem;
+      opacity: .75;
+      margin-bottom: 1rem;
+    }
+
+    .risk-probs {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .risk-prob-item {
+      background: rgba(0, 0, 0, .07);
+      border-radius: 8px;
+      padding: .3rem .75rem;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    .risk-recs {
+      font-size: .82rem;
+    }
+
+    .risk-recs ul {
+      margin: .4rem 0 0;
+      padding-left: 1.2rem;
+    }
+
+    .risk-recs li {
+      margin-bottom: .3rem;
+      line-height: 1.5;
+    }
+
+    /* predict btn in table */
+    .btn-predict {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: .25rem .65rem;
+      font-size: .75rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity .2s;
+    }
+
+    .btn-predict:hover {
+      opacity: .85;
+    }
+
+    .btn-predict:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* loading spinner */
+    .ml-spinner {
+      display: none;
+      text-align: center;
+      padding: 1.5rem;
+      color: #6c5ce7;
+      font-weight: 600;
+    }
+
+    .ml-spinner.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-animated"></div>
+  <div class="dashboard">
+
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
+        </div>
+        <div class="sidebar-logo-text">
+          <h2>Smart SIS</h2>
+          <p>Admin Control Panel</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <p class="nav-section-title">Dashboard</p>
+        <a class="nav-link active" data-section="sec-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          System Overview
+        </a>
+        <p class="nav-section-title">User Management</p>
+        <a class="nav-link" data-section="sec-students">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+          </svg>
+          Manage Students
+        </a>
+        <a class="nav-link" data-section="sec-instructors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Manage Instructors
+        </a>
+        <p class="nav-section-title">Academic Management</p>
+        <a class="nav-link" data-section="sec-courses-admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+          </svg>
+          Manage Courses
+        </a>
+        <a class="nav-link" data-section="sec-departments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Manage Departments
+        </a>
+        <p class="nav-section-title">Security</p>
+        <a class="nav-link" data-section="sec-risk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Risk Reports
+        </a>
+        <a class="nav-link" data-section="sec-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+          </svg>
+          System Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="sidebar-user-avatar">AD</div>
+          <div>
+            <div class="user-name" id="sidebar-user-name">Dr. Admin</div>
+            <div class="user-role" id="sidebar-user-role">Admin</div>
+          </div>
+          <button class="logout-btn" onclick="logout()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1 id="topbar-section-title">System Overview</h1>
+          <p id="topbar-date"></p>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-time" id="topbar-time"></span>
+          <span class="topbar-badge">System Administrator</span>
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- Overview -->
+        <section class="page-section active" id="sec-overview">
+          <div class="stats-grid">
+            <div class="stat-card fade-up">
+              <div class="stat-card-header">
+                <div class="stat-icon purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                  </svg>
+                </div>
+                <div class="stat-trend up">+12%</div>
+              </div>
+              <div class="stat-value" id="stat-total-students">—</div>
+              <div class="stat-label">Total Enrollment</div>
+            </div>
+            <div class="stat-card fade-up">
+              <div class="stat-card-header">
+                <div class="stat-icon blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </div>
+                <div class="stat-trend up">+4%</div>
+              </div>
+              <div class="stat-value" id="stat-total-instructors">—</div>
+              <div class="stat-label">Faculty Members</div>
+            </div>
+            <div class="stat-card fade-up">
+              <div class="stat-card-header">
+                <div class="stat-icon green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                  </svg>
+                </div>
+                <div class="stat-trend down">-2%</div>
+              </div>
+              <div class="stat-value" id="stat-total-courses">—</div>
+              <div class="stat-label">Active Courses</div>
+            </div>
+            <div class="stat-card fade-up">
+              <div class="stat-card-header">
+                <div class="stat-icon red">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div class="stat-trend up">Critical</div>
+              </div>
+              <div class="stat-value" id="stat-high-risk">—</div>
+              <div class="stat-label">Risk Alerts</div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top:2rem;">
+            <div class="card fade-up">
+              <div class="card-header">
+                <div class="card-title">Enrollment Growth</div>
+                <div class="card-subtitle">Last 6 months registration trend</div>
+              </div>
+              <div class="card-body" style="height:300px;">
+                <canvas id="enrollmentChart"></canvas>
+              </div>
+            </div>
+            <div class="card fade-up">
+              <div class="card-header">
+                <div class="card-title">Recent High-Risk Alerts</div>
+                <button class="btn-sm btn-sm-ghost"
+                  onclick="document.querySelector('[data-section=sec-risk]').click()">View Report</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Department</th>
+                      <th>CGPA</th>
+                      <th>Status</th>
+                      <th>ML Predict</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overview-risk-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Students -->
+        <section class="page-section" id="sec-students">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Manage Students</div>
+              <div style="display:flex;gap:.5rem;align-items:center;">
+                <button class="btn-sm btn-sm-ghost" onclick="predictAllRisk()" id="btn-predict-all">🤖 Predict All
+                  Risk</button>
+                <button class="btn-sm btn-sm-primary" onclick="openAddModal('Student')">+ Add Student</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Dept</th>
+                    <th>Level</th>
+                    <th>CGPA</th>
+                    <th>Att.</th>
+                    <th>Risk</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="all-students-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Instructors -->
+        <section class="page-section" id="sec-instructors">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Manage Instructors</div>
+              <button class="btn-sm btn-sm-blue" onclick="openAddModal('Instructor')">+ Add Instructor</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Dept</th>
+                    <th>Hire Date</th>
+                    <th>Courses</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="all-instructors-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Courses -->
+        <section class="page-section" id="sec-courses-admin">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Manage Courses</div>
+              <button class="btn-sm btn-sm-primary" onclick="openAddModal('Course')">+ Add Course</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Credits</th>
+                    <th>Department</th>
+                    <th>Instructor</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-courses-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Departments -->
+        <section class="page-section" id="sec-departments">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Manage Departments</div>
+              <button class="btn-sm btn-sm-blue" onclick="openAddModal('Department')">+ Add Department</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Students</th>
+                    <th>Instructors</th>
+                    <th>Courses</th>
+                    <th>Avg GPA</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="departments-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Risk Reports -->
+        <section class="page-section" id="sec-risk">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">High-Risk Students Report</div>
+              <button class="btn-sm btn-sm-ghost" onclick="refreshRiskReport()" id="btn-refresh-risk">🔄 Refresh ML
+                Predictions</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Email</th>
+                    <th>Dept</th>
+                    <th>CGPA</th>
+                    <th>Attendance</th>
+                    <th>ML Risk</th>
+                    <th>Confidence</th>
+                    <th>Recommendations</th>
+                  </tr>
+                </thead>
+                <tbody id="risk-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section class="page-section" id="sec-settings">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Academic Semesters</div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Start Date</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="settings-semesters-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">System Activity Logs</div>
+              </div>
+              <div class="table-wrap" style="max-height:400px; overflow-y:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Action</th>
+                      <th>Details</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="settings-logs-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ML Risk Modal -->
+  <div id="ml-risk-modal" class="ml-modal-overlay">
+    <div class="ml-modal-card">
+      <div class="ml-modal-header">
+        <div class="ml-modal-title">🤖 ML Risk Prediction</div>
+        <button class="ml-close-btn" onclick="closeMLModal()">✕</button>
+      </div>
+
+      <div id="ml-student-info"
+        style="margin-bottom:1rem; padding:.75rem 1rem; background:rgba(108,92,231,.08); border-radius:10px; font-size:.88rem;">
+        <strong id="ml-student-name">—</strong>
+        <span style="opacity:.6; margin-left:.5rem;" id="ml-student-details"></span>
+      </div>
+
+      <div class="ml-spinner" id="ml-spinner">⏳ Analyzing with ML model...</div>
+
+      <div class="risk-result-box" id="ml-result-box">
+        <div class="risk-level-text" id="ml-risk-level">—</div>
+        <div class="risk-conf-text" id="ml-confidence">—</div>
+        <div class="risk-probs" id="ml-probs"></div>
+        <div class="risk-recs">
+          <strong>Recommendations:</strong>
+          <ul id="ml-recs"></ul>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1rem;">
+        <button class="btn-sm btn-sm-ghost" onclick="closeMLModal()">Close</button>
+        <button class="btn-sm btn-sm-primary" id="ml-save-btn" onclick="saveRiskToDB()" style="display:none;">💾 Save
+          to DB</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:640px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">Action</h3>
+      </div>
+      <form id="modal-form">
+        <div id="modal-fields" style="display:grid; grid-template-columns:1fr 1fr; gap:0.875rem; padding:1rem 1.5rem;">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-sm btn-sm-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-sm btn-sm-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/chatbot.js"></script>
+  <script>
+    const ML_API = 'http://127.0.0.1:8000';   // ← ML FastAPI URL
+
+    // ── ML Helper Functions ──────────────────────────────────────────────────────
+
+    async function callPredictRisk(studentId, attendanceRate, cgpa, level) {
+      const res = await fetch(`${ML_API}/predict-risk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: studentId,
+          attendance_rate: parseFloat(attendanceRate) || 0,
+          cgpa: parseFloat(cgpa) || 0,
+          level: parseInt(level) || 1
+        })
+      });
+      if (!res.ok) throw new Error('ML API error: ' + res.status);
+      return await res.json();
+    }
+
+    // current prediction stored for "Save to DB"
+    let _currentPrediction = null;
+    let _currentStudentId = null;
+
+    function openMLModal(studentId, name, attendanceRate, cgpa, level) {
+      _currentStudentId = studentId;
+      _currentPrediction = null;
+
+      document.getElementById('ml-student-name').textContent = name;
+      document.getElementById('ml-student-details').textContent = `CGPA: ${parseFloat(cgpa).toFixed(2)} | Att: ${parseFloat(attendanceRate).toFixed(1)}% | Level: ${level}`;
+      document.getElementById('ml-spinner').classList.add('show');
+      document.getElementById('ml-result-box').classList.remove('show', 'Low', 'Medium', 'High');
+      document.getElementById('ml-save-btn').style.display = 'none';
+      document.getElementById('ml-risk-modal').classList.add('show');
+
+      callPredictRisk(studentId, attendanceRate, cgpa, level)
+        .then(data => {
+          _currentPrediction = data;
+          document.getElementById('ml-spinner').classList.remove('show');
+
+          const box = document.getElementById('ml-result-box');
+          box.className = `risk-result-box show ${data.risk_level}`;
+
+          const colors = { Low: '#28a745', Medium: '#ffc107', High: '#dc3545' };
+          document.getElementById('ml-risk-level').innerHTML =
+            `<span style="color:${colors[data.risk_level]}">${data.risk_level} Risk</span>`;
+          document.getElementById('ml-confidence').textContent =
+            `Model confidence: ${data.confidence}% · ${data.latency_ms}ms`;
+
+          // probabilities
+          document.getElementById('ml-probs').innerHTML = Object.entries(data.probabilities)
+            .map(([k, v]) => `<span class="risk-prob-item">${k}: ${v}%</span>`).join('');
+
+          // recommendations
+          document.getElementById('ml-recs').innerHTML = data.recommendations
+            .map(r => `<li>${r}</li>`).join('');
+
+          document.getElementById('ml-save-btn').style.display = 'inline-block';
+        })
+        .catch(err => {
+          document.getElementById('ml-spinner').classList.remove('show');
+          document.getElementById('ml-result-box').className = 'risk-result-box show Medium';
+          document.getElementById('ml-risk-level').textContent = '⚠️ ML API Unavailable';
+          document.getElementById('ml-confidence').textContent = 'Make sure the FastAPI server is running on port 8000';
+          document.getElementById('ml-probs').innerHTML = '';
+          document.getElementById('ml-recs').innerHTML = '<li>Start the API: uvicorn api:app --reload</li>';
+        });
+    }
+
+    function closeMLModal() {
+      document.getElementById('ml-risk-modal').classList.remove('show');
+    }
+
+    async function saveRiskToDB() {
+      if (!_currentPrediction || !_currentStudentId) return;
+      const btn = document.getElementById('ml-save-btn');
+      const oldText = btn.innerHTML;
+      
+      try {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Saving...';
+        
+        await adminApi.updateStudent(_currentStudentId, {
+          riskLevel: _currentPrediction.risk_level,
+          mlConfidence: _currentPrediction.confidence,
+          mlGpa: _currentPrediction.cgpa || 0,
+          mlAttendance: _currentPrediction.attendance_rate || 0
+        });
+        
+        btn.innerHTML = '✅ Saved!';
+        btn.style.background = '#28a745';
+        
+        setTimeout(() => {
+          closeMLModal();
+          loadData();
+          // reset button for next time
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+          btn.style.background = '';
+        }, 1500);
+      } catch (e) {
+        console.error('Save Error:', e);
+        btn.disabled = false;
+        btn.innerHTML = '❌ Error';
+        alert('Could not save to DB: ' + e.message);
+        setTimeout(() => { btn.innerHTML = oldText; }, 3000);
+      }
+    }
+
+    // Predict All Risk — loops through all students
+    async function predictAllRisk() {
+      const btn = document.getElementById('btn-predict-all');
+      btn.disabled = true;
+      btn.textContent = '⏳ Predicting...';
+
+      let done = 0;
+      for (const s of globalStudents) {
+        try {
+          const data = await callPredictRisk(s.StudentID, s.AttendanceRate, s.CGPA, s.CurrentLevel);
+          await adminApi.updateStudent(s.UserID, { 
+            riskLevel: data.risk_level,
+            mlConfidence: data.confidence,
+            mlGpa: data.cgpa || s.CGPA,
+            mlAttendance: data.attendance_rate || s.AttendanceRate
+          });
+          done++;
+        } catch (e) { console.warn('Skipped student', s.StudentID, e.message); }
+      }
+
+      btn.disabled = false;
+      btn.textContent = `🤖 Predict All Risk`;
+      alert(`✅ Done! Predicted and logged risk for ${done} students.`);
+      loadData();
+    }
+
+    // Refresh risk report with fresh ML predictions
+    async function refreshRiskReport() {
+      const btn = document.getElementById('btn-refresh-risk');
+      btn.disabled = true;
+      btn.textContent = '⏳ Running ML...';
+
+      const rows = [];
+      for (const s of globalStudents) {
+        try {
+          const data = await callPredictRisk(s.StudentID, s.AttendanceRate, s.CGPA, s.CurrentLevel);
+          rows.push({ ...s, mlRisk: data.risk_level, mlConf: data.confidence, mlRecs: data.recommendations });
+        } catch (e) {
+          rows.push({ ...s, mlRisk: s.RiskLevel || '—', mlConf: '—', mlRecs: [] });
+        }
+      }
+
+      const riskColors = { High: 'badge-red', Medium: 'badge-yellow', Low: 'badge-green' };
+      document.getElementById('risk-body').innerHTML = rows
+        .sort((a, b) => { const o = { High: 0, Medium: 1, Low: 2 }; return (o[a.mlRisk] ?? 3) - (o[b.mlRisk] ?? 3); })
+        .map(s => `
+      <tr>
+        <td><strong>${s.FullName}</strong></td>
+        <td style="font-size:.78rem">${s.Email}</td>
+        <td>${s.Department}</td>
+        <td><strong>${parseFloat(s.CGPA || 0).toFixed(2)}</strong></td>
+        <td>${parseFloat(s.AttendanceRate || 0).toFixed(1)}%</td>
+        <td><span class="badge ${riskColors[s.mlRisk] || 'badge-gray'}">${s.mlRisk}</span></td>
+        <td>${s.mlConf !== '—' ? s.mlConf + '%' : '—'}</td>
+        <td style="font-size:.75rem">${s.mlRecs[0] || '—'}</td>
+      </tr>`).join('');
+
+      btn.disabled = false;
+      btn.textContent = '🔄 Refresh ML Predictions';
+    }
+
+    // ── Main App ──────────────────────────────────────────────────────────────────
+    const auth = requireAuth();
+    if (auth) {
+      initClock(); initUserInfo(auth);
+      document.getElementById('topbar-date').textContent = new Date().toLocaleDateString();
+
+      let globalDepts = [], globalInstructors = [], globalStudents = [], globalCourses = [];
+
+      const fmtDate = (d) => d ? new Date(d).toLocaleDateString() : '—';
+      const riskBadge = (r) => {
+        const map = { High: 'badge-red', Medium: 'badge-yellow', Low: 'badge-green' };
+        return `<span class="badge ${map[r] || 'badge-gray'}">${r || 'Low'}</span>`;
+      };
+      const inp = (name, label, type = 'text', val = '', extra = '') =>
+        `<div><label class="dash-label">${label}</label><input type="${type}" name="${name}" placeholder="${label}" class="dash-input" value="${val !== null && val !== undefined ? val : ''}" ${extra}></div>`;
+      const selField = (name, label, optionsHtml) =>
+        `<div><label class="dash-label">${label}</label><select name="${name}" class="dash-input">${optionsHtml}</select></div>`;
+      const sectionDiv = (text) =>
+        `<div style="grid-column:1/-1; border-top:1px solid var(--border); padding-top:0.75rem; margin-top:0.5rem;"><label class="dash-label" style="color:var(--primary);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;">${text}</label></div>`;
+
+      async function loadData() {
+        try {
+          const [stats, highRisk, allStudents, allInstructors, departments, allCourses] = await Promise.all([
+            adminApi.stats(), adminApi.highRisk(), adminApi.allStudents(),
+            adminApi.allInstructors(), adminApi.departments(), adminApi.allCourses()
+          ]);
+
+          globalDepts = departments || [];
+          globalInstructors = allInstructors || [];
+          globalStudents = allStudents || [];
+          globalCourses = allCourses || [];
+
+          document.getElementById('stat-total-students').textContent = stats.studentCount || 0;
+          document.getElementById('stat-total-instructors').textContent = stats.instructorCount || 0;
+          document.getElementById('stat-total-courses').textContent = stats.courseCount || 0;
+          document.getElementById('stat-high-risk').textContent = stats.highRiskCount || 0;
+
+          // Overview risk table — with ML predict button
+          // Note: highRisk comes from vw_HighRiskStudents which has no Department;
+          // we enrich it from allStudents (which has Department from the full query)
+          document.getElementById('overview-risk-body').innerHTML = (highRisk || []).slice(0, 5).map(s => {
+            const full = allStudents.find(st => st.StudentID === s.StudentID) || s;
+            return `
+        <tr>
+          <td><strong>${s.FullName}</strong></td>
+          <td>${full.Department || '—'}</td>
+          <td><strong style="color:var(--risk-high)">${parseFloat(s.CGPA || 0).toFixed(2)}</strong></td>
+          <td><span class="badge badge-red">Critical</span></td>
+          <td>
+            <button class="btn-predict"
+              onclick="openMLModal(${full.UserID || s.StudentID},'${s.FullName.replace(/'/g, "\\'")}',${s.AttendanceRate || 0},${s.CGPA || 0},${full.CurrentLevel || 1})">
+              🤖 Predict
+            </button>
+          </td>
+        </tr>`;
+          }).join('');
+
+          initCharts();
+
+          // Students table — with ML predict button per row
+          document.getElementById('all-students-body').innerHTML = (allStudents || []).map(s => {
+            const att = parseFloat(s.AttendanceRate || 0);
+            const cgpa = parseFloat(s.CGPA || 0);
+            const attWarning = att < 75 ? ` <span title="Article 10.9: At risk of being barred from Exams" style="color:#d63031; font-weight:bold; font-size:0.8rem;"><br>🚫 Barred Risk</span>` : '';
+            const cgpaWarning = cgpa < 2.0 ? ` <span title="Article 23: Academic Probation" style="color:#d63031; font-weight:bold; font-size:0.8rem;"><br>⚠️ Probation</span>` : '';
+            
+            return `
+        <tr ${att < 75 || cgpa < 2.0 ? 'style="background-color: rgba(214,48,49,0.05); border-left: 3px solid #d63031;"' : ''}>
+          <td><strong>${s.StudentID}</strong></td>
+          <td>${s.FullName}</td>
+          <td style="font-size:.78rem;color:var(--text-secondary)">${s.Email}</td>
+          <td>${s.Mobile || '—'}</td>
+          <td>${s.Department}</td>
+          <td><span class="badge badge-blue">L${s.CurrentLevel || 1}</span></td>
+          <td style="line-height:1.2;"><strong>${cgpa.toFixed(2)}</strong>${cgpaWarning}</td>
+          <td style="line-height:1.2;"><strong>${att.toFixed(1)}%</strong>${attWarning}</td>
+          <td>${riskBadge(s.RiskLevel)}</td>
+          <td><span class="badge ${s.IsActive ? 'badge-green' : 'badge-red'}">${s.IsActive ? 'Active' : 'Disabled'}</span></td>
+          <td style="white-space:nowrap">
+            <button class="btn-predict"
+              onclick="openMLModal(${s.UserID},'${s.FullName.replace(/'/g, "\\'")}',${att},${cgpa},${s.CurrentLevel || 1})">
+              🤖
+            </button>
+            <button class="btn-sm btn-sm-ghost" onclick="openEditModal('Student',${s.UserID})">Edit</button>
+            <button class="btn-sm btn-sm-blue"  onclick="toggleUserStatus(${s.UserID},${s.IsActive})">${s.IsActive ? 'Disable' : 'Enable'}</button>
+          </td>
+        </tr>`;
+          }).join('');
+
+          // Instructors
+          document.getElementById('all-instructors-body').innerHTML = (allInstructors || []).map(i => `
+        <tr>
+          <td><strong>${i.FullName}</strong></td>
+          <td style="font-size:.78rem;color:var(--text-secondary)">${i.Email}</td>
+          <td>${i.Phone || '—'}</td>
+          <td>${i.Department}</td>
+          <td>${fmtDate(i.HireDate)}</td>
+          <td><span class="badge badge-purple">${i.Courses || 0} courses</span></td>
+          <td><span class="badge ${i.IsActive ? 'badge-green' : 'badge-red'}">${i.IsActive ? 'Active' : 'Disabled'}</span></td>
+          <td style="white-space:nowrap">
+            <button class="btn-sm btn-sm-ghost" onclick="openEditModal('Instructor',${i.UserID})">Edit</button>
+            <button class="btn-sm btn-sm-blue"  onclick="toggleUserStatus(${i.UserID},${i.IsActive})">${i.IsActive ? 'Disable' : 'Enable'}</button>
+          </td>
+        </tr>`).join('');
+
+          // Courses
+          document.getElementById('admin-courses-body').innerHTML = (allCourses || []).map(c => `
+        <tr>
+          <td><strong>${c.Code}</strong></td>
+          <td>${c.Name}</td>
+          <td>${c.Credits} cr</td>
+          <td>${c.Department}</td>
+          <td>${c.Instructor || '—'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn-sm btn-sm-blue"   onclick="openEditModal('Course',${c.CourseID})">Edit</button>
+            <button class="btn-sm btn-sm-danger"  onclick="deleteCourse(${c.CourseID})">Del</button>
+          </td>
+        </tr>`).join('');
+
+          // Departments
+          document.getElementById('departments-body').innerHTML = (departments || []).map(d => `
+        <tr>
+          <td><strong>${d.Name}</strong></td>
+          <td>${d.Students || 0}</td>
+          <td>${d.Instructors || 0}</td>
+          <td>${d.Courses || 0}</td>
+          <td>${parseFloat(d.AvgGPA || 0).toFixed(2)}</td>
+          <td style="white-space:nowrap">
+            <button class="btn-sm btn-sm-blue"  onclick="openEditModal('Department',${d.DepartmentID})">Edit</button>
+            <button class="btn-sm btn-sm-danger" onclick="deleteDept(${d.DepartmentID})">Del</button>
+          </td>
+        </tr>`).join('');
+
+          // Risk table — static from DB initially, refresh button for ML
+          document.getElementById('risk-body').innerHTML = (highRisk || []).map(s => `
+        <tr>
+          <td>${s.FullName}</td>
+          <td style="font-size:.78rem">${s.Email}</td>
+          <td>${s.Department}</td>
+          <td><strong>${parseFloat(s.CGPA || 0).toFixed(2)}</strong></td>
+          <td>${parseFloat(s.AttendanceRate || 0).toFixed(1)}%</td>
+          <td>${riskBadge(s.RiskLevel)}</td>
+          <td>—</td>
+          <td style="font-size:.75rem">—</td>
+        </tr>`).join('');
+
+          // Settings
+          const semesters = await adminApi.getSemesters();
+          const logs = await adminApi.getLogs();
+
+          document.getElementById('settings-semesters-body').innerHTML = semesters.map(sem => `
+        <tr>
+          <td><strong>${sem.Name}</strong></td>
+          <td>${formatDate(sem.StartDate)}</td>
+          <td><span class="badge ${sem.IsActive ? 'badge-green' : 'badge-gray'}">${sem.IsActive ? 'ACTIVE' : 'Inactive'}</span></td>
+          <td>${!sem.IsActive ? `<button class="btn-sm btn-sm-primary" onclick="setActiveSemester(${sem.SemesterID})">Set Active</button>` : '—'}</td>
+        </tr>`).join('');
+
+          document.getElementById('settings-logs-body').innerHTML = logs.map(l => `
+        <tr>
+          <td><strong>${l.FullName || 'System'}</strong></td>
+          <td><span class="badge badge-purple" style="font-size:.65rem">${l.Action}</span></td>
+          <td style="font-size:.75rem">${l.Details}</td>
+          <td style="font-size:.7rem;opacity:.6">${new Date(l.Timestamp).toLocaleString()}</td>
+        </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;padding:2rem">No logs found</td></tr>';
+
+        } catch (err) { console.error('Load Error:', err); }
+      }
+
+      function initCharts() {
+        const ctx = document.getElementById('enrollmentChart')?.getContext('2d');
+        if (!ctx) return;
+        if (window.myChart) window.myChart.destroy();
+        window.myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+              label: 'Students',
+              data: [120, 190, 300, 250, 420, 510],
+              borderColor: '#6c5ce7',
+              backgroundColor: 'rgba(108,92,231,0.1)',
+              fill: true, tension: 0.4, borderWidth: 3,
+              pointRadius: 4, pointBackgroundColor: '#6c5ce7'
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, border: { display: false } },
+              x: { grid: { display: false }, border: { display: false } }
+            }
+          }
+        });
+      }
+
+      window.setActiveSemester = async (id) => {
+        try { await adminApi.updateSemester(id, { isActive: true }); loadData(); }
+        catch (e) { alert(e.message); }
+      };
+      window.toggleUserStatus = async (id, cur) => {
+        try { await adminApi.toggleUserStatus(id, !cur); loadData(); }
+        catch (e) { alert(e.message); }
+      };
+
+      window.openEditModal = (type, id) => {
+        let item = null;
+        if (type === 'Student') item = globalStudents.find(s => s.UserID === id);
+        else if (type === 'Instructor') item = globalInstructors.find(i => i.UserID === id);
+        else if (type === 'Course') item = globalCourses.find(c => c.CourseID === id);
+        else if (type === 'Department') item = globalDepts.find(d => d.DepartmentID === id);
+        openAddModal(type, item);
+      };
+
+      window.openAddModal = (type, editItem = null) => {
+        const modal = document.getElementById('admin-modal');
+        const form = document.getElementById('modal-form');
+        const title = document.getElementById('modal-title');
+        const fields = document.getElementById('modal-fields');
+        title.innerText = (editItem ? 'Edit ' : 'Add ') + type;
+        form.reset(); modal.classList.add('show');
+
+        const deptOpts = `<option value="">Select Department</option>` +
+          globalDepts.map(d => `<option value="${d.DepartmentID}" ${(editItem?.DepartmentID === d.DepartmentID || editItem?.Department === d.Name) ? 'selected' : ''}>${d.Name}</option>`).join('');
+        const instOpts = `<option value="">— No Instructor —</option>` +
+          globalInstructors.map(i => `<option value="${i.InstructorID}" ${editItem?.Instructor === i.FullName ? 'selected' : ''}>${i.FullName}</option>`).join('');
+        const genderOpts = `<option value="">Gender</option><option value="Male" ${editItem?.Gender === 'Male' ? 'selected' : ''}>Male</option><option value="Female" ${editItem?.Gender === 'Female' ? 'selected' : ''}>Female</option>`;
+        const riskOpts = `<option value="Low" ${(!editItem?.RiskLevel || editItem?.RiskLevel === 'Low') ? 'selected' : ''}>Low</option><option value="Medium" ${editItem?.RiskLevel === 'Medium' ? 'selected' : ''}>Medium</option><option value="High" ${editItem?.RiskLevel === 'High' ? 'selected' : ''}>High</option>`;
+        const birthVal = editItem?.BirthDate ? new Date(editItem.BirthDate).toISOString().split('T')[0] : '';
+        const hireVal = editItem?.HireDate ? new Date(editItem.HireDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+        let html = '';
+        if (type === 'Student') {
+          html = `${sectionDiv('⭐ Basic Information')}${inp('fullName', 'Full Name', 'text', editItem?.FullName, 'required')}${inp('email', 'Email', 'email', editItem?.Email, 'required')}${editItem ? '' : inp('password', 'Password', 'password', '', 'required')}${selField('departmentId', 'Department', deptOpts)}${inp('enrollmentYear', 'Enrollment Year', 'number', editItem?.EnrollmentYear || new Date().getFullYear(), 'min="2000" max="2030"')}${inp('level', 'Level (1–6)', 'number', editItem?.CurrentLevel || 1, 'min="1" max="6"')}${sectionDiv('📋 Personal Details')}${inp('nationalId', 'National ID', 'text', editItem?.NationalID)}${selField('gender', 'Gender', genderOpts)}${inp('nationality', 'Nationality', 'text', editItem?.Nationality)}${inp('birthDate', 'Birth Date', 'date', birthVal)}${inp('mobile', 'Mobile', 'tel', editItem?.Mobile)}${sectionDiv('📊 Academic Status')}${inp('cgpa', 'CGPA', 'number', editItem?.CGPA || '', 'step="0.01" min="0" max="4"')}${inp('attendanceRate', 'Attendance (%)', 'number', editItem?.AttendanceRate || '', 'step="0.1" min="0" max="100"')}${selField('riskLevel', 'Risk Level', riskOpts)}`;
+        } else if (type === 'Instructor') {
+          html = `${sectionDiv('⭐ Basic Information')}${inp('fullName', 'Full Name', 'text', editItem?.FullName, 'required')}${inp('email', 'Email', 'email', editItem?.Email, 'required')}${editItem ? '' : inp('password', 'Password', 'password', '', 'required')}${selField('departmentId', 'Department', deptOpts)}${inp('phone', 'Phone', 'tel', editItem?.Phone || editItem?.Mobile)}${inp('hireDate', 'Hire Date', 'date', hireVal)}${sectionDiv('📋 Personal Details')}${inp('nationalId', 'National ID', 'text', editItem?.NationalID)}${selField('gender', 'Gender', genderOpts)}${inp('nationality', 'Nationality', 'text', editItem?.Nationality)}${inp('birthDate', 'Birth Date', 'date', birthVal)}${sectionDiv('🎓 Professional')}${inp('specialization', 'Specialization', 'text', editItem?.Specialization)}${inp('degree', 'Degree', 'text', editItem?.Degree)}`;
+        } else if (type === 'Department') {
+          html = `<div style="grid-column:1/-1">${inp('name', 'Department Name', 'text', editItem?.Name, 'required')}</div><div style="grid-column:1/-1">${inp('location', 'Location', 'text', editItem?.Location)}</div><div style="grid-column:1/-1"><label class="dash-label">Description</label><textarea name="description" class="dash-input" style="height:80px;resize:none;">${editItem?.Description || ''}</textarea></div>`;
+        } else if (type === 'Course') {
+          html = `${inp('code', 'Course Code', 'text', editItem?.Code, 'required')}${inp('name', 'Course Name', 'text', editItem?.Name, 'required')}${inp('credits', 'Credits', 'number', editItem?.Credits, 'required min="1" max="6"')}${selField('departmentId', 'Department', deptOpts)}${selField('instructorId', 'Instructor', instOpts)}`;
+        }
+
+        fields.innerHTML = html;
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(form).entries());
+          try {
+            if (editItem) {
+              const id = editItem.UserID || editItem.CourseID || editItem.DepartmentID;
+              if (type === 'Student') await adminApi.updateStudent(id, data);
+              else if (type === 'Instructor') await adminApi.updateInstructor(id, data);
+              else if (type === 'Department') await adminApi.updateDepartment(id, data);
+              else if (type === 'Course') await adminApi.updateCourse(id, data);
+            } else {
+              if (type === 'Student') await adminApi.createStudent(data);
+              else if (type === 'Instructor') await adminApi.createInstructor(data);
+              else if (type === 'Department') await adminApi.createDepartment(data);
+              else if (type === 'Course') await adminApi.createCourse(data);
+            }
+            closeModal(); loadData();
+          } catch (err) { alert('Error: ' + err.message); }
+        };
+      };
+
+      window.closeModal = () => document.getElementById('admin-modal').classList.remove('show');
+      window.deleteUser = async (id) => { if (confirm('Delete user?')) { try { await adminApi.deleteUser(id); loadData(); } catch (e) { alert(e.message); } } };
+      window.deleteDept = async (id) => { if (confirm('Delete department?')) { try { await adminApi.deleteDepartment(id); loadData(); } catch (e) { alert(e.message); } } };
+      window.deleteCourse = async (id) => { if (confirm('Delete course?')) { try { await adminApi.deleteCourse(id); loadData(); } catch (e) { alert(e.message); } } };
+
+      loadData();
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.addEventListener('click', () => {
+          document.querySelectorAll('.nav-link, .page-section').forEach(el => el.classList.remove('active'));
+          l.classList.add('active');
+          const sec = document.getElementById(l.dataset.section);
+          if (sec) sec.classList.add('active');
+          document.getElementById('topbar-section-title').textContent = l.textContent.trim();
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>
