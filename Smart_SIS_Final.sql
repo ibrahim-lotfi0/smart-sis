@@ -680,7 +680,7 @@ INSERT INTO Student(UserID, DepartmentID, NationalID, Gender, Nationality,
 SELECT u.UserID, d.DepartmentID, s.NID, s.Gender, 'Egyptian',
        s.BirthDate, s.Mobile, 2023, s.Lvl, s.CGPA, s.Att, s.Risk
 FROM (VALUES
-    ('student1000@uni.edu','Computer Science','29901000001','Female','2003-05-10','+20 1011000001', 2, 3.45, 92.0, 'Low'),
+    ('student1000@uni.edu','Computer Science','29901000001','Female','2003-05-10','+20 1011000001', 2, 3.45, 95.0, 'Low'),
     ('student1001@uni.edu','Mathematics',     '29901000002','Male',  '2002-07-21','+20 1011000002', 3, 2.10, 65.0, 'High'),
     ('student1002@uni.edu','Computer Science','29901000003','Female','2003-11-03','+20 1011000003', 2, 2.75, 80.0, 'Medium')
 ) AS s(Email, Dept, NID, Gender, BirthDate, Mobile, Lvl, CGPA, Att, Risk)
@@ -716,37 +716,64 @@ SELECT c.CourseID, @ActiveSem, 'Midterm', '2026-04-15', '09:00', '11:00', 'Hall 
 FROM   Course c WHERE c.Code = 'CS101';
 
 INSERT INTO Exam(CourseID, SemesterID, ExamType, ExamDate, StartTime, EndTime, Room)
-SELECT c.CourseID, @ActiveSem, 'Quiz', '2026-03-10', '10:00', '10:30', 'Hall 202'
-FROM   Course c WHERE c.Code = 'MA201';
+SELECT c.CourseID, @ActiveSem, 'Quiz', '2026-03-10', '10:00', '10:30', 'Hall 101'
+FROM   Course c WHERE c.Code = 'CS101';
+
+INSERT INTO Exam(CourseID, SemesterID, ExamType, ExamDate, StartTime, EndTime, Room)
+SELECT c.CourseID, @ActiveSem, 'Quiz', '2026-04-01', '10:00', '10:30', 'Hall 101'
+FROM   Course c WHERE c.Code = 'CS101';
 
 -- ExamGrade seed data
-DECLARE @MidtermID INT = (SELECT ExamID FROM Exam WHERE ExamType = 'Midterm');
-DECLARE @QuizID    INT = (SELECT ExamID FROM Exam WHERE ExamType = 'Quiz');
+DECLARE @MidtermID INT = (SELECT ExamID FROM Exam WHERE CourseID = (SELECT CourseID FROM Course WHERE Code='CS101') AND ExamType = 'Midterm');
+DECLARE @Quiz1ID   INT = (SELECT TOP 1 ExamID FROM Exam WHERE CourseID = (SELECT CourseID FROM Course WHERE Code='CS101') AND ExamType = 'Quiz' ORDER BY ExamDate ASC);
+DECLARE @Quiz2ID   INT = (SELECT TOP 1 ExamID FROM Exam WHERE CourseID = (SELECT CourseID FROM Course WHERE Code='CS101') AND ExamType = 'Quiz' ORDER BY ExamDate DESC);
 
 -- Midterm CS101 (MaxScore = 20)
+-- student1000 (Low Risk): Midterm = 18.0
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
-SELECT @MidtermID, s.StudentID, 17.0, 20.0
-FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1000@uni.edu';   -- Safe
+SELECT @MidtermID, s.StudentID, 18.0, 20.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1000@uni.edu';
 
+-- student1001 (High Risk): Midterm = 8.0 (Failed)
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
 SELECT @MidtermID, s.StudentID, 8.0, 20.0
-FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1001@uni.edu';   -- Withdraw
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1001@uni.edu';
 
+-- student1002 (Medium Risk): Midterm = 13.0
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
 SELECT @MidtermID, s.StudentID, 13.0, 20.0
-FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1002@uni.edu';   -- Improve
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1002@uni.edu';
 
--- Quiz MA201 (MaxScore = 10)
+-- Quiz 1 CS101 (MaxScore = 10)
+-- student1000 (Low Risk): Quiz1 = 9.0
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
-SELECT @QuizID, s.StudentID, 9.0, 10.0
-FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1000@uni.edu';   -- Safe
+SELECT @Quiz1ID, s.StudentID, 9.0, 10.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1000@uni.edu';
 
+-- student1001 (High Risk): Quiz1 = 3.0 (Failed)
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
-SELECT @QuizID, s.StudentID, 4.0, 10.0
-FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1001@uni.edu';   -- Withdraw
+SELECT @Quiz1ID, s.StudentID, 3.0, 10.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1001@uni.edu';
 
+-- student1002 (Medium Risk): Quiz1 = 6.0
 INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
-SELECT @QuizID, s.StudentID, 6.5, 10.0
+SELECT @Quiz1ID, s.StudentID, 6.0, 10.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1002@uni.edu';
+
+-- Quiz 2 CS101 (MaxScore = 10)
+-- student1000 (Low Risk): Quiz2 = 9.0
+INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
+SELECT @Quiz2ID, s.StudentID, 9.0, 10.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1000@uni.edu';
+
+-- student1001 (High Risk): Quiz2 = 4.0 (Failed)
+INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
+SELECT @Quiz2ID, s.StudentID, 4.0, 10.0
+FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1001@uni.edu';
+
+-- student1002 (Medium Risk): Quiz2 = 4.0 (Failed one quiz)
+INSERT INTO ExamGrade(ExamID, StudentID, Score, MaxScore)
+SELECT @Quiz2ID, s.StudentID, 4.0, 10.0
 FROM Student s JOIN [User] u ON u.UserID = s.UserID WHERE u.Email = 'student1002@uni.edu';   -- Improve
 
 -- Feedback

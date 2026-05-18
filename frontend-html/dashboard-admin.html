@@ -181,10 +181,7 @@
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
+          <img src="images/logo.png" alt="Smart SIS Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" />
         </div>
         <div class="sidebar-logo-text">
           <h2>Smart SIS</h2>
@@ -575,6 +572,14 @@
         <span style="opacity:.6; margin-left:.5rem;" id="ml-student-details"></span>
       </div>
 
+      <!-- Fetched DB Grades Display -->
+      <div id="ml-fetched-data" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; font-size: 0.8rem; background: rgba(0,0,0,0.02); padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+        <span class="badge badge-gray" id="ml-disp-att" style="font-size: 0.75rem;">Attendance: --</span>
+        <span class="badge badge-gray" id="ml-disp-mid" style="font-size: 0.75rem;">Midterm: --/20</span>
+        <span class="badge badge-gray" id="ml-disp-q1" style="font-size: 0.75rem;">Quiz 1: --/10</span>
+        <span class="badge badge-gray" id="ml-disp-q2" style="font-size: 0.75rem;">Quiz 2: --/10</span>
+      </div>
+
       <div class="ml-spinner" id="ml-spinner">⏳ Analyzing with ML model...</div>
 
       <div class="risk-result-box" id="ml-result-box">
@@ -589,8 +594,7 @@
 
       <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1rem;">
         <button class="btn-sm btn-sm-ghost" onclick="closeMLModal()">Close</button>
-        <button class="btn-sm btn-sm-primary" id="ml-save-btn" onclick="saveRiskToDB()" style="display:none;">💾 Save
-          to DB</button>
+        <button class="btn-sm btn-sm-primary" id="ml-save-btn" onclick="saveRiskToDB()" style="display:none;">💾 Save to DB</button>
       </div>
     </div>
   </div>
@@ -620,15 +624,16 @@
 
     // ── ML Helper Functions ──────────────────────────────────────────────────────
 
-    async function callPredictRisk(studentId, attendanceRate, cgpa, level) {
+    async function callPredictRisk(studentId, attendanceRate, quiz1, quiz2, midterm) {
       const res = await fetch(`${ML_API}/predict-risk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_id: studentId,
           attendance_rate: parseFloat(attendanceRate) || 0,
-          cgpa: parseFloat(cgpa) || 0,
-          level: parseInt(level) || 1
+          quiz1: parseFloat(quiz1) || 0,
+          quiz2: parseFloat(quiz2) || 0,
+          midterm: parseFloat(midterm) || 0
         })
       });
       if (!res.ok) throw new Error('ML API error: ' + res.status);
@@ -638,51 +643,66 @@
     // current prediction stored for "Save to DB"
     let _currentPrediction = null;
     let _currentStudentId = null;
+    let _currentStudentGpa = null;
 
-    function openMLModal(studentId, name, attendanceRate, cgpa, level) {
+    async function openMLModal(studentId, name, attendanceRate, cgpa, level) {
       _currentStudentId = studentId;
+      _currentStudentGpa = parseFloat(cgpa) || 0;
       _currentPrediction = null;
 
       document.getElementById('ml-student-name').textContent = name;
-      document.getElementById('ml-student-details').textContent = `CGPA: ${parseFloat(cgpa).toFixed(2)} | Att: ${parseFloat(attendanceRate).toFixed(1)}% | Level: ${level}`;
+      document.getElementById('ml-student-details').textContent = `CGPA: ${_currentStudentGpa.toFixed(2)} | Level: ${level}`;
+      
+      document.getElementById('ml-risk-modal').classList.add('show');
       document.getElementById('ml-spinner').classList.add('show');
       document.getElementById('ml-result-box').classList.remove('show', 'Low', 'Medium', 'High');
       document.getElementById('ml-save-btn').style.display = 'none';
-      document.getElementById('ml-risk-modal').classList.add('show');
-
-      callPredictRisk(studentId, attendanceRate, cgpa, level)
-        .then(data => {
-          _currentPrediction = data;
-          document.getElementById('ml-spinner').classList.remove('show');
-
-          const box = document.getElementById('ml-result-box');
-          box.className = `risk-result-box show ${data.risk_level}`;
-
-          const colors = { Low: '#28a745', Medium: '#ffc107', High: '#dc3545' };
-          document.getElementById('ml-risk-level').innerHTML =
-            `<span style="color:${colors[data.risk_level]}">${data.risk_level} Risk</span>`;
-          document.getElementById('ml-confidence').textContent =
-            `Model confidence: ${data.confidence}% · ${data.latency_ms}ms`;
-
-          // probabilities
-          document.getElementById('ml-probs').innerHTML = Object.entries(data.probabilities)
-            .map(([k, v]) => `<span class="risk-prob-item">${k}: ${v}%</span>`).join('');
-
-          // recommendations
-          document.getElementById('ml-recs').innerHTML = data.recommendations
-            .map(r => `<li>${r}</li>`).join('');
-
-          document.getElementById('ml-save-btn').style.display = 'inline-block';
-        })
-        .catch(err => {
-          document.getElementById('ml-spinner').classList.remove('show');
-          document.getElementById('ml-result-box').className = 'risk-result-box show Medium';
-          document.getElementById('ml-risk-level').textContent = '⚠️ ML API Unavailable';
-          document.getElementById('ml-confidence').textContent = 'Make sure the FastAPI server is running on port 8000';
-          document.getElementById('ml-probs').innerHTML = '';
-          document.getElementById('ml-recs').innerHTML = '<li>Start the API: uvicorn api:app --reload</li>';
+      
+      // Fetch exact grades from DB automatically
+      try {
+        const res = await fetch(`http://localhost:5000/api/admin/students/${studentId}/risk-factors`, {
+          headers: { Authorization: 'Bearer ' + localStorage.getItem('sis_token') }
         });
+        if (!res.ok) throw new Error('Could not fetch risk factors from DB');
+        const factors = await res.json();
+        
+        document.getElementById('ml-disp-att').textContent = `Attendance: ${parseFloat(factors.attendance).toFixed(1)}%`;
+        document.getElementById('ml-disp-mid').textContent = `Midterm: ${factors.midterm}/20`;
+        document.getElementById('ml-disp-q1').textContent = `Quiz 1: ${factors.quiz1}/10`;
+        document.getElementById('ml-disp-q2').textContent = `Quiz 2: ${factors.quiz2}/10`;
+        
+        // Trigger prediction with fetched data
+        const data = await callPredictRisk(studentId, factors.attendance, factors.quiz1, factors.quiz2, factors.midterm);
+        _currentPrediction = data;
+        
+        document.getElementById('ml-spinner').classList.remove('show');
+        const box = document.getElementById('ml-result-box');
+        box.className = `risk-result-box show ${data.risk_level}`;
+
+        const colors = { Low: '#28a745', Medium: '#ffc107', High: '#dc3545' };
+        document.getElementById('ml-risk-level').innerHTML =
+          `<span style="color:${colors[data.risk_level]}">${data.risk_level} Risk</span>`;
+        document.getElementById('ml-confidence').textContent =
+          `Model confidence: ${data.confidence}% · ${data.latency_ms}ms`;
+
+        document.getElementById('ml-probs').innerHTML = Object.entries(data.probabilities)
+          .map(([k, v]) => `<span class="risk-prob-item">${k}: ${v}%</span>`).join('');
+
+        document.getElementById('ml-recs').innerHTML = data.recommendations
+          .map(r => `<li>${r}</li>`).join('');
+
+        document.getElementById('ml-save-btn').style.display = 'inline-block';
+      } catch (err) {
+        document.getElementById('ml-spinner').classList.remove('show');
+        document.getElementById('ml-result-box').className = 'risk-result-box show Medium';
+        document.getElementById('ml-risk-level').textContent = '⚠️ Error';
+        document.getElementById('ml-confidence').textContent = err.message;
+        document.getElementById('ml-probs').innerHTML = '';
+        document.getElementById('ml-recs').innerHTML = '<li>Check console and make sure backend/ML server are running.</li>';
+      }
     }
+
+
 
     function closeMLModal() {
       document.getElementById('ml-risk-modal').classList.remove('show');
@@ -700,7 +720,7 @@
         await adminApi.updateStudent(_currentStudentId, {
           riskLevel: _currentPrediction.risk_level,
           mlConfidence: _currentPrediction.confidence,
-          mlGpa: _currentPrediction.cgpa || 0,
+          mlGpa: _currentStudentGpa,
           mlAttendance: _currentPrediction.attendance_rate || 0
         });
         

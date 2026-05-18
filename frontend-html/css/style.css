@@ -86,12 +86,13 @@ body {
 @keyframes slideUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
 
 .login-logo {
-  width: 64px; height: 64px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  width: 80px; height: 80px;
+  background: #fff;
   border-radius: 1.25rem;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 1.5rem;
   box-shadow: 0 8px 24px rgba(108,92,231,0.35);
+  overflow: hidden;
 }
 .login-logo svg { width:32px; height:32px; color:#fff; }
 .login-title { text-align:center; font-size:1.75rem; font-weight:800; color:var(--text-primary); }
@@ -169,12 +170,13 @@ body {
   display:flex; align-items:center; gap:0.875rem;
 }
 .sidebar-logo-icon {
-  width:42px; height:42px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  width:46px; height:46px;
+  background: #fff;
   border-radius:0.75rem;
   display:flex; align-items:center; justify-content:center;
   box-shadow: 0 4px 16px rgba(108,92,231,0.4);
   flex-shrink:0;
+  overflow: hidden;
 }
 .sidebar-logo-icon svg { width:22px; height:22px; color:#fff; }
 .sidebar-logo-text { color:#fff; }

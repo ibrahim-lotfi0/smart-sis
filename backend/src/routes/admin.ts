@@ -6,7 +6,8 @@ import {
   createDepartment, deleteDepartment, createCourse, deleteCourse, deleteUser,
   createStudent, createInstructor,
   updateStudent, updateInstructor, updateDepartment, updateCourse,
-  getSemesters, updateSemester, getSystemLogs, toggleUserStatus
+  getSemesters, updateSemester, getSystemLogs, toggleUserStatus,
+  getStudentRiskFactors
 } from '../controllers/adminController';
 
 const router = Router();
@@ -30,6 +31,7 @@ router.delete('/users/:id', verifyJWT, authorize(['Admin']), deleteUser);
 
 router.post('/students', verifyJWT, authorize(['Admin']), createStudent);
 router.put('/students/:id', verifyJWT, authorize(['Admin']), updateStudent);
+router.get('/students/:id/risk-factors', verifyJWT, authorize(['Admin']), getStudentRiskFactors);
 
 router.post('/instructors', verifyJWT, authorize(['Admin']), createInstructor);
 router.put('/instructors/:id', verifyJWT, authorize(['Admin']), updateInstructor);

@@ -131,10 +131,7 @@
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
+          <img src="images/logo.png" alt="Smart SIS Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" />
         </div>
         <div class="sidebar-logo-text">
           <h2>Smart SIS</h2>
@@ -462,6 +459,14 @@
               </button>
             </div>
             <div class="card-body">
+              <!-- Fetched DB Grades Display -->
+              <div id="ml-fetched-data" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 0.8rem; background: rgba(108,92,231,0.03); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(108,92,231,0.2);">
+                <span class="badge badge-gray" id="ml-disp-att" style="font-size: 0.75rem;">Attendance: --</span>
+                <span class="badge badge-gray" id="ml-disp-mid" style="font-size: 0.75rem;">Midterm: --/20</span>
+                <span class="badge badge-gray" id="ml-disp-q1" style="font-size: 0.75rem;">Quiz 1: --/10</span>
+                <span class="badge badge-gray" id="ml-disp-q2" style="font-size: 0.75rem;">Quiz 2: --/10</span>
+              </div>
+
               <div class="ml-loading-text" id="ml-loading">⏳ Analyzing your academic data...</div>
               <div class="risk-result-inline" id="ml-risk-result">
                 <div class="risk-level-big" id="ml-risk-level">—</div>
@@ -473,7 +478,7 @@
                 </div>
               </div>
               <p style="font-size:.8rem;opacity:.5;margin-top:.5rem;" id="ml-hint">
-                Click "Analyze My Risk" to get your personalized academic risk assessment.
+                Modify your grades above and click "Analyze My Risk" to get your personalized coursework assessment!
               </p>
             </div>
           </div>
@@ -525,14 +530,29 @@
       document.getElementById('ml-hint').style.display = 'none';
 
       try {
+        // 1. Fetch exact grades from DB
+        const factorsRes = await fetch('http://localhost:5000/api/student/my-risk-factors', {
+          headers: { Authorization: 'Bearer ' + localStorage.getItem('sis_token') }
+        });
+        if (!factorsRes.ok) throw new Error('Could not fetch risk factors from DB');
+        const factors = await factorsRes.json();
+        
+        // Update UI Badges
+        document.getElementById('ml-disp-att').textContent = `Attendance: ${parseFloat(factors.attendance).toFixed(1)}%`;
+        document.getElementById('ml-disp-mid').textContent = `Midterm: ${factors.midterm}/20`;
+        document.getElementById('ml-disp-q1').textContent = `Quiz 1: ${factors.quiz1}/10`;
+        document.getElementById('ml-disp-q2').textContent = `Quiz 2: ${factors.quiz2}/10`;
+
+        // 2. Pass to ML Model
         const res = await fetch(`${ML_API}/predict-risk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             student_id: _myProfile.StudentID || null,
-            attendance_rate: parseFloat(_myProfile.AttendanceRate) || 0,
-            cgpa: parseFloat(_myProfile.CGPA) || 0,
-            level: parseInt(_myProfile.CurrentLevel) || 1
+            attendance_rate: factors.attendance,
+            quiz1: factors.quiz1,
+            quiz2: factors.quiz2,
+            midterm: factors.midterm
           })
         });
 
@@ -564,10 +584,10 @@
         document.getElementById('ml-loading').classList.remove('show');
         const result = document.getElementById('ml-risk-result');
         result.className = 'risk-result-inline show Medium';
-        document.getElementById('ml-risk-level').textContent = '⚠️ ML API Unavailable';
+        document.getElementById('ml-risk-level').textContent = '⚠️ Error';
         document.getElementById('ml-risk-conf').textContent = e.message;
         document.getElementById('ml-risk-probs').innerHTML = '';
-        document.getElementById('ml-risk-recs').innerHTML = '<li>Make sure the FastAPI server is running: uvicorn api:app --reload</li>';
+        document.getElementById('ml-risk-recs').innerHTML = '<li>Make sure backend/ML server are running.</li>';
         btn.disabled = false;
         btn.textContent = '🔄 Retry';
       }
@@ -585,6 +605,8 @@
             studentApi.profile(), studentApi.grades(), studentApi.attendance(),
             studentApi.courses(), studentApi.schedule(), studentApi.exams()
           ]);
+
+          _myProfile = profile;   // save for ML call
 
           _myProfile = profile;   // save for ML call
 

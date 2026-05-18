@@ -431,3 +431,45 @@ export const toggleUserStatus = async (req: Request, res: Response) => {
     res.json({ message: 'User status updated' });
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
+
+export const getStudentRiskFactors = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const pool = await poolPromise;
+    
+    // Fetch Attendance Rate
+    const attRes = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT AttendanceRate FROM Student WHERE StudentID = @id');
+    
+    const attendance = attRes.recordset[0]?.AttendanceRate || 0;
+
+    // Fetch Exams for CS101 (or latest exams) to capture Midterm, Quiz 1, Quiz 2
+    const examsRes = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT e.ExamType, e.ExamDate, eg.Score, eg.MaxScore
+        FROM ExamGrade eg
+        JOIN Exam e ON e.ExamID = eg.ExamID
+        WHERE eg.StudentID = @id
+        ORDER BY e.ExamDate ASC
+      `);
+
+    let midterm = 0, quiz1 = 0, quiz2 = 0;
+    let quizCount = 0;
+    
+    examsRes.recordset.forEach(row => {
+      if (row.ExamType === 'Midterm') midterm = row.Score;
+      if (row.ExamType === 'Quiz') {
+        quizCount++;
+        if (quizCount === 1) quiz1 = row.Score;
+        if (quizCount === 2) quiz2 = row.Score;
+      }
+    });
+
+    res.json({ attendance, midterm, quiz1, quiz2 });
+  } catch (err) {
+    console.error('Error fetching risk factors:', err);
+    res.status(500).json({ message: 'Error fetching risk factors' });
+  }
+};
