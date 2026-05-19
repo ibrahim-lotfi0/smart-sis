@@ -432,6 +432,32 @@ export const toggleUserStatus = async (req: Request, res: Response) => {
   } catch (err) { res.status(500).json({ message: 'Server error' }); }
 };
 
+// GET /api/admin/feedback  ─  All feedback with sentiment stats for NLP dashboard
+export const getAdminFeedback = async (req: Request, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().query(`
+      SELECT f.FeedbackID, u.FullName AS StudentName, u.Email,
+             d.Name AS Department, c.Code AS CourseCode, c.Name AS CourseName,
+             f.FeedbackText, f.Sentiment, f.SubmittedAt
+      FROM Feedback f
+      JOIN Student    s ON s.StudentID    = f.StudentID
+      JOIN [User]     u ON u.UserID       = s.UserID
+      JOIN Department d ON d.DepartmentID = s.DepartmentID
+      JOIN Course     c ON c.CourseID     = f.CourseID
+      ORDER BY f.SubmittedAt DESC
+    `);
+    const rows     = result.recordset;
+    const positive = rows.filter((r: any) => r.Sentiment === 'Positive').length;
+    const neutral  = rows.filter((r: any) => r.Sentiment === 'Neutral').length;
+    const negative = rows.filter((r: any) => r.Sentiment === 'Negative').length;
+    res.json({ feedback: rows, stats: { total: rows.length, positive, neutral, negative } });
+  } catch (err) {
+    console.error('Error fetching admin feedback:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 export const getStudentRiskFactors = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -458,7 +484,7 @@ export const getStudentRiskFactors = async (req: Request, res: Response) => {
     let midterm = 0, quiz1 = 0, quiz2 = 0;
     let quizCount = 0;
     
-    examsRes.recordset.forEach(row => {
+    examsRes.recordset.forEach((row: any) => {
       if (row.ExamType === 'Midterm') midterm = row.Score;
       if (row.ExamType === 'Quiz') {
         quizCount++;

@@ -8,6 +8,46 @@
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* ── Course Feedback CSS ── */
+    .feedback-textarea {
+      width:100%; min-height:120px; resize:vertical;
+      border:1.5px solid var(--border,#ddd); border-radius:10px;
+      padding:.85rem 1rem; font-size:.9rem; font-family:inherit;
+      color:var(--text-primary,#1a1a2e); background:var(--card-bg,#fff);
+      transition:border-color .2s; box-sizing:border-box;
+    }
+    .feedback-textarea:focus { outline:none; border-color:#6c5ce7; }
+
+    .sentiment-result {
+      border-radius:12px; padding:1.25rem 1.5rem;
+      margin-top:1rem; display:none; animation:fadeUp .3s ease;
+    }
+    .sentiment-result.show     { display:block; }
+    .sentiment-result.Positive { background:#d4edda; border-left:4px solid #28a745; }
+    .sentiment-result.Neutral  { background:#e8f4fd; border-left:4px solid #3498db; }
+    .sentiment-result.Negative { background:#f8d7da; border-left:4px solid #dc3545; }
+
+    .sentiment-label { font-size:1.2rem; font-weight:800; margin-bottom:.25rem; }
+    .sentiment-conf  { font-size:.8rem; opacity:.7; margin-bottom:.75rem; }
+    .sentiment-probs { display:flex; gap:.6rem; flex-wrap:wrap; }
+    .sentiment-chip  { background:rgba(0,0,0,.08); border-radius:6px; padding:.25rem .65rem; font-size:.78rem; font-weight:600; }
+
+    .submit-fb-btn {
+      background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+      color:#fff; border:none; border-radius:8px;
+      padding:.55rem 1.4rem; font-size:.88rem; font-weight:600;
+      cursor:pointer; transition:opacity .2s; margin-top:.75rem;
+    }
+    .submit-fb-btn:hover    { opacity:.85; }
+    .submit-fb-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    .fb-loading { font-size:.85rem; color:#6c5ce7; font-weight:600; display:none; margin-top:.5rem; }
+    .fb-loading.show { display:block; }
+
+    .sent-Positive { background:#d4edda; color:#155724; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; }
+    .sent-Neutral  { background:#cce5ff; color:#004085; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; }
+    .sent-Negative { background:#f8d7da; color:#721c24; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; }
+
     /* ── Risk Result Card in Profile ── */
     .risk-analyze-btn {
       background: linear-gradient(135deg, #6c5ce7, #a29bfe);
@@ -94,6 +134,7 @@
       padding: .25rem .65rem;
       font-size: .78rem;
       font-weight: 600;
+      transition: all 0.2s ease;
     }
 
     .risk-recs-list {
@@ -102,13 +143,25 @@
 
     .risk-recs-list ul {
       margin: .3rem 0 0;
-      padding-left: 1.2rem;
+      padding-left: 0;
+      list-style: none;
     }
 
     .risk-recs-list li {
-      margin-bottom: .25rem;
+      margin-bottom: .35rem;
       line-height: 1.5;
+      padding-left: 0.5rem;
     }
+
+    /* ── Dynamic Colors per Risk Level ── */
+    .risk-result-inline.Low .risk-prob-chip { background: rgba(40,167,69,0.15); color: #155724; border: 1px solid rgba(40,167,69,0.3); }
+    .risk-result-inline.Low .risk-recs-list li { border-left: 3px solid #28a745; }
+
+    .risk-result-inline.Medium .risk-prob-chip { background: rgba(255,193,7,0.25); color: #856404; border: 1px solid rgba(255,193,7,0.4); }
+    .risk-result-inline.Medium .risk-recs-list li { border-left: 3px solid #ffc107; }
+
+    .risk-result-inline.High .risk-prob-chip { background: rgba(220,53,69,0.15); color: #721c24; border: 1px solid rgba(220,53,69,0.3); }
+    .risk-result-inline.High .risk-recs-list li { border-left: 3px solid #dc3545; }
 
     .ml-loading-text {
       font-size: .85rem;
@@ -184,6 +237,12 @@
             <polyline points="14 2 14 8 20 8" />
           </svg>
           Exams
+        </a>
+        <a class="nav-link" data-section="sec-feedback">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          Course Feedback
         </a>
         <p class="nav-section-title">Account</p>
         <a class="nav-link" data-section="sec-profile">
@@ -430,6 +489,60 @@
           </div>
         </section>
 
+        <!-- Course Feedback (NLP Powered) -->
+        <section class="page-section" id="sec-feedback">
+          <div class="card fade-up" style="margin-bottom:1.5rem;">
+            <div class="card-header">
+              <div>
+                <div class="card-title">💬 Submit Course Feedback</div>
+                <div class="card-subtitle">Your feedback is analyzed automatically using AI sentiment analysis</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;gap:1rem;">
+                <div>
+                  <label class="dash-label">Select Course</label>
+                  <select class="dash-select" id="fb-course-select">
+                    <option value="">— Select a course —</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="dash-label">Your Feedback</label>
+                  <textarea class="feedback-textarea" id="fb-text"
+                    placeholder="Share your thoughts about the course, instructor, materials, or overall experience..."></textarea>
+                  <div style="font-size:.75rem;opacity:.55;margin-top:.3rem;">Minimum 10 characters · Maximum 2000 characters</div>
+                </div>
+                <div>
+                  <button class="submit-fb-btn" id="btn-submit-fb" onclick="submitFeedback()">
+                    🚀 Submit &amp; Analyze Sentiment
+                  </button>
+                </div>
+                <div class="fb-loading" id="fb-loading">⏳ Analyzing sentiment with AI model...</div>
+                <div class="sentiment-result" id="fb-result">
+                  <div class="sentiment-label" id="fb-sent-label">—</div>
+                  <div class="sentiment-conf"  id="fb-sent-conf">—</div>
+                  <div class="sentiment-probs" id="fb-sent-probs"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card fade-up">
+            <div class="card-header">
+              <div class="card-title">📋 My Feedback History</div>
+              <button class="btn-sm btn-sm-ghost" onclick="loadFeedbackHistory()">🔄 Refresh</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Course</th><th>Feedback</th><th>AI Sentiment</th><th>Submitted</th></tr></thead>
+                <tbody id="fb-history-body">
+                  <tr><td colspan="4" style="text-align:center;opacity:.5;padding:2rem">No feedback submitted yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         <!-- Profile ── ML Risk Analysis added here ── -->
         <section class="page-section" id="sec-profile">
           <div class="grid-2">
@@ -470,8 +583,8 @@
               <div class="ml-loading-text" id="ml-loading">⏳ Analyzing your academic data...</div>
               <div class="risk-result-inline" id="ml-risk-result">
                 <div class="risk-level-big" id="ml-risk-level">—</div>
-                <div class="risk-conf-small" id="ml-risk-conf">—</div>
-                <div class="risk-probs-row" id="ml-risk-probs"></div>
+                <div class="risk-conf-small" id="ml-risk-conf" style="display: none !important;">—</div>
+                <div class="risk-probs-row" id="ml-risk-probs" style="display: none !important;"></div>
                 <div class="risk-recs-list">
                   <strong>📋 Recommendations for you:</strong>
                   <ul id="ml-risk-recs"></ul>
@@ -518,6 +631,7 @@
 
     // store profile data for ML call
     let _myProfile = null;
+    let _myCourses = null;
 
     async function analyzeMyRisk() {
       if (!_myProfile) return alert('Profile data not loaded yet.');
@@ -607,8 +721,7 @@
           ]);
 
           _myProfile = profile;   // save for ML call
-
-          _myProfile = profile;   // save for ML call
+          _myCourses = courses;   // save for feedback dropdown
 
           // ── Official Bylaws Warnings ───────────────────────────────────────────────
           let warningsHTML = '';
@@ -687,6 +800,7 @@
         <div class="info-row"><span class="info-label">Risk Level</span><span class="info-value">${riskBadge(profile.RiskLevel)}</span></div>
         <div class="info-row"><span class="info-label">Account Status</span><span class="info-value">${profile.IsActive ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-red">Inactive</span>'}</span></div>`;
 
+          window._myProfile = profile;
           loadAvailableCourses();
         } catch (e) { console.error('Load Error:', e); }
       }
@@ -730,6 +844,153 @@
         try { await studentApi.registerCourse(courseId); closeRegisterModal(); loadData(); }
         catch (err) { alert('Error: ' + err.message); }
       };
+
+      loadData();
+
+      // ── ML Risk Analysis ──
+      window.analyzeMyRisk = async function() {
+        if (!window._myProfile) return alert('Profile data not loaded yet.');
+        const btn = document.getElementById('btn-analyze-risk');
+        btn.disabled    = true;
+        btn.textContent = '⏳ Analyzing...';
+        document.getElementById('ml-loading').classList.add('show');
+        document.getElementById('ml-risk-result').classList.remove('show','Low','Medium','High');
+        if(document.getElementById('ml-hint')) document.getElementById('ml-hint').style.display = 'none';
+
+        try {
+          const res = await fetch('http://127.0.0.1:8000/predict-risk', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              student_id:      window._myProfile.StudentID || null,
+              attendance_rate: parseFloat(window._myProfile.AttendanceRate) || 0,
+              cgpa:            parseFloat(window._myProfile.CGPA)           || 0,
+              level:           parseInt(window._myProfile.CurrentLevel)     || 1
+            })
+          });
+          if (!res.ok) throw new Error('ML API returned ' + res.status);
+          const data = await res.json();
+
+          document.getElementById('ml-loading').classList.remove('show');
+          const colors = { Low:'#28a745', Medium:'#e67e22', High:'#dc3545' };
+          const result = document.getElementById('ml-risk-result');
+          result.className = `risk-result-inline show ${data.risk_level}`;
+          document.getElementById('ml-risk-level').innerHTML =
+            `<span style="color:${colors[data.risk_level]}">${data.risk_level} Risk</span>`;
+          document.getElementById('ml-risk-conf').textContent =
+            `Model confidence: ${data.confidence}% · ${data.latency_ms}ms`;
+          document.getElementById('ml-risk-probs').innerHTML =
+            Object.entries(data.probabilities).map(([k,v]) => `<span class="risk-prob-chip">${k}: ${v}%</span>`).join('');
+          document.getElementById('ml-risk-recs').innerHTML =
+            data.recommendations.map(r => `<li>${r}</li>`).join('');
+
+          btn.disabled    = false;
+          btn.textContent = '🔄 Re-analyze';
+        } catch(e) {
+          document.getElementById('ml-loading').classList.remove('show');
+          const result = document.getElementById('ml-risk-result');
+          result.className = 'risk-result-inline show Medium';
+          document.getElementById('ml-risk-level').textContent = '⚠️ ML API Unavailable';
+          document.getElementById('ml-risk-conf').textContent  = e.message;
+          document.getElementById('ml-risk-probs').innerHTML   = '';
+          document.getElementById('ml-risk-recs').innerHTML    = '<li>Start the API: uvicorn api:app --reload</li>';
+          btn.disabled    = false;
+          btn.textContent = '🔄 Retry';
+        }
+      }
+
+      // ── NLP Feedback JS logic ──
+      window.submitFeedback = async function() {
+        const courseId     = document.getElementById('fb-course-select').value;
+        const feedbackText = document.getElementById('fb-text').value.trim();
+
+        if (!courseId)                   return alert('Please select a course.');
+        if (feedbackText.length < 10)    return alert('Feedback must be at least 10 characters.');
+        if (feedbackText.length > 2000)  return alert('Feedback must not exceed 2000 characters.');
+
+        const btn = document.getElementById('btn-submit-fb');
+        btn.disabled    = true;
+        btn.textContent = '⏳ Analyzing...';
+        document.getElementById('fb-loading').classList.add('show');
+        document.getElementById('fb-result').classList.remove('show','Positive','Neutral','Negative');
+
+        try {
+          const res = await fetch('http://localhost:5000/api/student/feedback', {
+            method:  'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('sis_token') 
+            },
+            body: JSON.stringify({ courseId: parseInt(courseId), feedbackText })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Submission failed.');
+
+          document.getElementById('fb-loading').classList.remove('show');
+
+          const colors = { Positive:'#28a745', Neutral:'#3498db', Negative:'#dc3545' };
+          const emojis = { Positive:'😊 Positive', Neutral:'😐 Neutral', Negative:'😞 Negative' };
+
+          const resultBox = document.getElementById('fb-result');
+          resultBox.className = `sentiment-result show ${data.sentiment}`;
+          document.getElementById('fb-sent-label').innerHTML =
+            `<span style="color:${colors[data.sentiment]}">${emojis[data.sentiment]}</span>`;
+          document.getElementById('fb-sent-conf').textContent =
+            data.confidence > 0
+              ? `AI confidence: ${data.confidence}%${data.threshold_applied ? ' (threshold applied)' : ''} · ${data.latency_ms}ms`
+              : 'AI model unavailable — classified as Neutral';
+          document.getElementById('fb-sent-probs').innerHTML = data.confidence > 0
+            ? Object.entries(data.probabilities).map(([k,v]) => `<span class="sentiment-chip">${k}: ${v}%</span>`).join('')
+            : '';
+
+          document.getElementById('fb-text').value = '';
+          document.getElementById('fb-course-select').value = '';
+          loadFeedbackHistory();
+
+          btn.disabled    = false;
+          btn.textContent = '🚀 Submit & Analyze Sentiment';
+        } catch(e) {
+          document.getElementById('fb-loading').classList.remove('show');
+          const resultBox = document.getElementById('fb-result');
+          resultBox.className = 'sentiment-result show Negative';
+          document.getElementById('fb-sent-label').textContent = '⚠️ Submission Failed';
+          document.getElementById('fb-sent-conf').textContent  = e.message;
+          document.getElementById('fb-sent-probs').innerHTML   = '';
+          btn.disabled    = false;
+          btn.textContent = '🚀 Submit & Analyze Sentiment';
+        }
+      }
+
+      window.loadFeedbackHistory = async function() {
+        try {
+          const res  = await fetch('http://localhost:5000/api/student/feedback', {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sis_token') }
+          });
+          const list = await res.json();
+          document.getElementById('fb-history-body').innerHTML = list.length
+            ? list.map(f => `
+                <tr>
+                  <td><strong>${f.CourseCode}</strong><div style="font-size:.7rem;opacity:.6">${f.CourseName}</div></td>
+                  <td style="max-width:320px;font-size:.82rem">${f.FeedbackText.substring(0,120)}${f.FeedbackText.length>120?'...':''}</td>
+                  <td><span class="sent-${f.Sentiment}">${f.Sentiment}</span></td>
+                  <td style="font-size:.75rem">${new Date(f.SubmittedAt).toLocaleDateString()}</td>
+                </tr>`).join('')
+            : '<tr><td colspan="4" style="text-align:center;opacity:.5;padding:2rem">No feedback submitted yet</td></tr>';
+        } catch(e) { console.error('Feedback history error:', e); }
+      }
+
+      // Populate feedback course selection list when data loads
+      const oldLoadData = loadData;
+      loadData = async function() {
+        await oldLoadData();
+        if (_myCourses) {
+          document.getElementById('fb-course-select').innerHTML =
+            '<option value="">— Select a course —</option>' +
+            _myCourses.filter(c => c.Status === 'enrolled')
+                   .map(c => `<option value="${c.CourseID}">${c.Code} — ${c.Name}</option>`).join('');
+        }
+        loadFeedbackHistory();
+      }
 
       loadData();
       document.querySelectorAll('.nav-link').forEach(l => {

@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const instructorController_1 = require("../controllers/instructorController");
+const router = (0, express_1.Router)();
+router.get('/courses', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor', 'TA']), instructorController_1.getInstructorCourses);
+router.get('/students', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor', 'TA']), instructorController_1.getCourseStudents);
+router.get('/sessions', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor', 'TA']), instructorController_1.getInstructorSessions);
+router.get('/sessions/:id/attendance', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor', 'TA']), instructorController_1.getSessionAttendance);
+router.get('/pending-grades', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor']), instructorController_1.getPendingGrades);
+router.get('/available-tas', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor']), instructorController_1.getAvailableTAs);
+router.get('/assigned-tas', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor']), instructorController_1.getAssignedTAs);
+router.post('/sessions', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor', 'TA']), instructorController_1.createSession);
+router.post('/grades', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor']), instructorController_1.saveGrades);
+router.post('/assign-ta', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Instructor']), instructorController_1.assignTA);
+exports.default = router;

@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { verifyJWT, authorize } from '../middleware/authMiddleware';
 import { 
   getStudentProfile, getStudentGrades, getStudentAttendance, 
-  getStudentCourses, getStudentSchedule, getStudentExams, submitFeedback, registerCourse,
-  getMyRiskFactors
+  getStudentCourses, getStudentSchedule, getStudentExams,
+  submitFeedback, getFeedbackHistory,
+  registerCourse, getMyRiskFactors
 } from '../controllers/studentController';
 
 const router = Router();
@@ -15,6 +16,8 @@ router.get('/courses', verifyJWT, authorize(['Student']), getStudentCourses);
 router.get('/schedule', verifyJWT, authorize(['Student']), getStudentSchedule);
 router.get('/exams', verifyJWT, authorize(['Student']), getStudentExams);
 router.post('/feedback', verifyJWT, authorize(['Student']), submitFeedback);
+router.get('/feedback',  verifyJWT, authorize(['Student']), getFeedbackHistory);
+
 router.post('/register-course', verifyJWT, authorize(['Student']), registerCourse);
 router.get('/my-risk-factors', verifyJWT, authorize(['Student']), getMyRiskFactors);
 

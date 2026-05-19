@@ -121,6 +121,7 @@
       padding: .3rem .75rem;
       font-size: .8rem;
       font-weight: 600;
+      transition: all 0.2s ease;
     }
 
     .risk-recs {
@@ -129,13 +130,25 @@
 
     .risk-recs ul {
       margin: .4rem 0 0;
-      padding-left: 1.2rem;
+      padding-left: 0;
+      list-style: none;
     }
 
     .risk-recs li {
-      margin-bottom: .3rem;
+      margin-bottom: .4rem;
       line-height: 1.5;
+      padding-left: 0.5rem;
     }
+
+    /* ── Dynamic Colors per Risk Level ── */
+    .risk-result-box.Low .risk-prob-item { background: rgba(40,167,69,0.15) !important; color: #155724 !important; border: 1px solid rgba(40,167,69,0.3) !important; }
+    .risk-result-box.Low .risk-recs li { border-left: 3px solid #28a745 !important; }
+
+    .risk-result-box.Medium .risk-prob-item { background: rgba(255,193,7,0.25) !important; color: #856404 !important; border: 1px solid rgba(255,193,7,0.4) !important; }
+    .risk-result-box.Medium .risk-recs li { border-left: 3px solid #ffc107 !important; }
+
+    .risk-result-box.High .risk-prob-item { background: rgba(220,53,69,0.15) !important; color: #721c24 !important; border: 1px solid rgba(220,53,69,0.3) !important; }
+    .risk-result-box.High .risk-recs li { border-left: 3px solid #dc3545 !important; }
 
     /* predict btn in table */
     .btn-predict {
@@ -171,6 +184,19 @@
     .ml-spinner.show {
       display: block;
     }
+
+    /* ── NLP Feedback Analysis CSS ── */
+    .sent-Positive { background:#d4edda; color:#155724; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; display:inline-block; }
+    .sent-Neutral  { background:#cce5ff; color:#004085; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; display:inline-block; }
+    .sent-Negative { background:#f8d7da; color:#721c24; padding:.2rem .65rem; border-radius:20px; font-size:.75rem; font-weight:700; display:inline-block; }
+
+    .sent-stats { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .sent-stat-card { flex:1; min-width:140px; border-radius:12px; padding:1rem 1.25rem; text-align:center; }
+    .sent-stat-card.positive { background:#d4edda; border:2px solid #28a745; }
+    .sent-stat-card.neutral  { background:#cce5ff; border:2px solid #3498db; }
+    .sent-stat-card.negative { background:#f8d7da; border:2px solid #dc3545; }
+    .sent-stat-num   { font-size:2rem; font-weight:800; line-height:1; }
+    .sent-stat-label { font-size:.82rem; font-weight:600; opacity:.8; margin-top:.25rem; }
   </style>
 </head>
 
@@ -238,6 +264,12 @@
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           Risk Reports
+        </a>
+        <a class="nav-link" data-section="sec-feedback-admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          Feedback Analysis
         </a>
         <a class="nav-link" data-section="sec-settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -512,6 +544,51 @@
           </div>
         </section>
 
+        <!-- Feedback Analysis (NLP) -->
+        <section class="page-section" id="sec-feedback-admin">
+
+          <div class="sent-stats" id="sent-summary">
+            <div class="sent-stat-card positive"><div class="sent-stat-num" id="stat-positive">—</div><div class="sent-stat-label">😊 Positive</div></div>
+            <div class="sent-stat-card neutral" ><div class="sent-stat-num" id="stat-neutral">—</div><div class="sent-stat-label">😐 Neutral</div></div>
+            <div class="sent-stat-card negative"><div class="sent-stat-num" id="stat-negative">—</div><div class="sent-stat-label">😞 Negative</div></div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:1.5rem;">
+            <div class="card fade-up">
+              <div class="card-header"><div class="card-title">Sentiment Distribution</div><div class="card-subtitle">All course feedback</div></div>
+              <div class="card-body" style="height:260px;"><canvas id="sentimentChart"></canvas></div>
+            </div>
+            <div class="card fade-up">
+              <div class="card-header"><div class="card-title">Feedback by Course</div><div class="card-subtitle">Number of submissions per course</div></div>
+              <div class="card-body" style="height:260px;"><canvas id="feedbackCourseChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="card fade-up">
+            <div class="card-header">
+              <div class="card-title">📋 All Student Feedback</div>
+              <div style="display:flex;gap:.5rem;align-items:center;">
+                <select class="dash-select" id="fb-filter-sentiment" onchange="filterFeedback()" style="padding:.3rem .75rem;font-size:.82rem;">
+                  <option value="">All Sentiments</option>
+                  <option value="Positive">Positive</option>
+                  <option value="Neutral">Neutral</option>
+                  <option value="Negative">Negative</option>
+                </select>
+                <button class="btn-sm btn-sm-ghost" onclick="loadFeedbackAdmin()">🔄 Refresh</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Department</th><th>Course</th><th>Feedback</th><th>AI Sentiment</th><th>Submitted</th></tr></thead>
+                <tbody id="feedback-admin-body">
+                  <tr><td colspan="6" style="text-align:center;opacity:.5;padding:2rem">Loading feedback...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
         <!-- Settings -->
         <section class="page-section" id="sec-settings">
           <div class="grid-2">
@@ -584,8 +661,8 @@
 
       <div class="risk-result-box" id="ml-result-box">
         <div class="risk-level-text" id="ml-risk-level">—</div>
-        <div class="risk-conf-text" id="ml-confidence">—</div>
-        <div class="risk-probs" id="ml-probs"></div>
+        <div class="risk-conf-text" id="ml-confidence" style="display: none !important;">—</div>
+        <div class="risk-probs" id="ml-probs" style="display: none !important;"></div>
         <div class="risk-recs">
           <strong>Recommendations:</strong>
           <ul id="ml-recs"></ul>
@@ -855,7 +932,7 @@
           <td><span class="badge badge-red">Critical</span></td>
           <td>
             <button class="btn-predict"
-              onclick="openMLModal(${full.UserID || s.StudentID},'${s.FullName.replace(/'/g, "\\'")}',${s.AttendanceRate || 0},${s.CGPA || 0},${full.CurrentLevel || 1})">
+              onclick="openMLModal(${s.StudentID},'${s.FullName.replace(/'/g, "\\'")}',${s.AttendanceRate || 0},${s.CGPA || 0},${full.CurrentLevel || 1})">
               🤖 Predict
             </button>
           </td>
@@ -885,7 +962,7 @@
           <td><span class="badge ${s.IsActive ? 'badge-green' : 'badge-red'}">${s.IsActive ? 'Active' : 'Disabled'}</span></td>
           <td style="white-space:nowrap">
             <button class="btn-predict"
-              onclick="openMLModal(${s.UserID},'${s.FullName.replace(/'/g, "\\'")}',${att},${cgpa},${s.CurrentLevel || 1})">
+              onclick="openMLModal(${s.StudentID},'${s.FullName.replace(/'/g, "\\'")}',${att},${cgpa},${s.CurrentLevel || 1})">
               🤖
             </button>
             <button class="btn-sm btn-sm-ghost" onclick="openEditModal('Student',${s.UserID})">Edit</button>
@@ -1002,6 +1079,76 @@
         });
       }
 
+      // ── NLP Feedback Analysis JS Logic ──
+      let _allFeedback = [];
+
+      window.loadFeedbackAdmin = async function() {
+        try {
+          const res = await fetch('http://localhost:5000/api/admin/feedback', { 
+            headers: { Authorization: 'Bearer ' + localStorage.getItem('sis_token') } 
+          });
+          const data = await res.json();
+          _allFeedback = data.feedback || [];
+
+          document.getElementById('stat-positive').textContent = data.stats?.positive || 0;
+          document.getElementById('stat-neutral').textContent  = data.stats?.neutral  || 0;
+          document.getElementById('stat-negative').textContent = data.stats?.negative || 0;
+
+          renderFeedbackTable(_allFeedback);
+          renderSentimentCharts(data.stats, _allFeedback);
+        } catch(e) { console.error('Feedback load error:', e); }
+      }
+
+      window.filterFeedback = function() {
+        const filter   = document.getElementById('fb-filter-sentiment').value;
+        const filtered = filter ? _allFeedback.filter(f => f.Sentiment === filter) : _allFeedback;
+        renderFeedbackTable(filtered);
+      }
+
+      function renderFeedbackTable(list) {
+        document.getElementById('feedback-admin-body').innerHTML = list.length
+          ? list.map(f => `
+              <tr>
+                <td><strong>${f.StudentName}</strong><div style="font-size:.7rem;opacity:.6">${f.Email||''}</div></td>
+                <td>${f.Department||'—'}</td>
+                <td><strong>${f.CourseCode}</strong><div style="font-size:.7rem;opacity:.6">${f.CourseName}</div></td>
+                <td style="max-width:300px;font-size:.82rem">${f.FeedbackText.substring(0,150)}${f.FeedbackText.length>150?'...':''}</td>
+                <td><span class="sent-${f.Sentiment}">${f.Sentiment}</span></td>
+                <td style="font-size:.75rem">${new Date(f.SubmittedAt).toLocaleDateString()}</td>
+              </tr>`).join('')
+          : '<tr><td colspan="6" style="text-align:center;opacity:.5;padding:2rem">No feedback found</td></tr>';
+      }
+
+      function renderSentimentCharts(stats, feedback) {
+        const pieCtx = document.getElementById('sentimentChart')?.getContext('2d');
+        if (pieCtx) {
+          if (window.sentChart) window.sentChart.destroy();
+          window.sentChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: { labels:['Positive','Neutral','Negative'],
+              datasets:[{ data:[stats?.positive||0, stats?.neutral||0, stats?.negative||0],
+                backgroundColor:['#28a745','#3498db','#dc3545'], borderWidth:2, borderColor:'#fff' }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
+          });
+        }
+
+        const barCtx = document.getElementById('feedbackCourseChart')?.getContext('2d');
+        if (barCtx) {
+          const counts = {};
+          feedback.forEach(f => { counts[f.CourseCode] = (counts[f.CourseCode]||0)+1; });
+          if (window.courseChart) window.courseChart.destroy();
+          window.courseChart = new Chart(barCtx, {
+            type: 'bar',
+            data: { labels: Object.keys(counts),
+              datasets:[{ label:'Feedback Count', data: Object.values(counts),
+                backgroundColor:'rgba(108,92,231,.7)', borderRadius:8 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+              scales:{ y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}} } }
+          });
+        }
+      }
+
+
       window.setActiveSemester = async (id) => {
         try { await adminApi.updateSemester(id, { isActive: true }); loadData(); }
         catch (e) { alert(e.message); }
@@ -1074,6 +1221,12 @@
       window.deleteUser = async (id) => { if (confirm('Delete user?')) { try { await adminApi.deleteUser(id); loadData(); } catch (e) { alert(e.message); } } };
       window.deleteDept = async (id) => { if (confirm('Delete department?')) { try { await adminApi.deleteDepartment(id); loadData(); } catch (e) { alert(e.message); } } };
       window.deleteCourse = async (id) => { if (confirm('Delete course?')) { try { await adminApi.deleteCourse(id); loadData(); } catch (e) { alert(e.message); } } };
+
+      const oldLoadData = loadData;
+      loadData = async function() {
+        await oldLoadData();
+        loadFeedbackAdmin();
+      }
 
       loadData();
       document.querySelectorAll('.nav-link').forEach(l => {

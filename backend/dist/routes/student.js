@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const studentController_1 = require("../controllers/studentController");
+const router = (0, express_1.Router)();
+router.get('/profile', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentProfile);
+router.get('/grades', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentGrades);
+router.get('/attendance', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentAttendance);
+router.get('/courses', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentCourses);
+router.get('/schedule', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentSchedule);
+router.get('/exams', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getStudentExams);
+router.post('/feedback', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.submitFeedback);
+router.get('/feedback', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getFeedbackHistory);
+router.post('/register-course', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.registerCourse);
+router.get('/my-risk-factors', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Student']), studentController_1.getMyRiskFactors);
+exports.default = router;

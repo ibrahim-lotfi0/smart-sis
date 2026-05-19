@@ -1,0 +1,32 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const adminController_1 = require("../controllers/adminController");
+const router = (0, express_1.Router)();
+router.get('/stats', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getAdminStats);
+router.get('/high-risk', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getHighRiskStudents);
+router.get('/students', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getAllStudents);
+router.get('/instructors', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getAllInstructors);
+router.get('/departments', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getDepartments);
+router.get('/courses', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getAllCourses);
+router.post('/departments', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.createDepartment);
+router.delete('/departments/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.deleteDepartment);
+router.put('/departments/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.updateDepartment);
+router.post('/courses', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.createCourse);
+router.delete('/courses/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.deleteCourse);
+router.put('/courses/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.updateCourse);
+router.delete('/users/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.deleteUser);
+router.post('/students', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.createStudent);
+router.put('/students/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.updateStudent);
+router.get('/students/:id/risk-factors', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getStudentRiskFactors);
+router.post('/instructors', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.createInstructor);
+router.put('/instructors/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.updateInstructor);
+// System Settings
+router.get('/semesters', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getSemesters);
+router.put('/semesters/:id', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.updateSemester);
+router.get('/logs', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getSystemLogs);
+router.put('/users/:id/status', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.toggleUserStatus);
+// NLP Feedback
+router.get('/feedback', authMiddleware_1.verifyJWT, (0, authMiddleware_1.authorize)(['Admin']), adminController_1.getAdminFeedback);
+exports.default = router;

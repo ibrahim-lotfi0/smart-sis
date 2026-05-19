@@ -7,7 +7,7 @@ import {
   createStudent, createInstructor,
   updateStudent, updateInstructor, updateDepartment, updateCourse,
   getSemesters, updateSemester, getSystemLogs, toggleUserStatus,
-  getStudentRiskFactors
+  getStudentRiskFactors, getAdminFeedback
 } from '../controllers/adminController';
 
 const router = Router();
@@ -41,5 +41,8 @@ router.get('/semesters', verifyJWT, authorize(['Admin']), getSemesters);
 router.put('/semesters/:id', verifyJWT, authorize(['Admin']), updateSemester);
 router.get('/logs', verifyJWT, authorize(['Admin']), getSystemLogs);
 router.put('/users/:id/status', verifyJWT, authorize(['Admin']), toggleUserStatus);
+
+// NLP Feedback
+router.get('/feedback', verifyJWT, authorize(['Admin']), getAdminFeedback);
 
 export default router;

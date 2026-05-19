@@ -1,6 +1,9 @@
 import { Response } from 'express';
 import { poolPromise, sql } from '../config/db';
 
+const ML_API = process.env.ML_API_URL || 'http://127.0.0.1:8000';
+
+
 export const getStudentProfile = async (req: any, res: Response) => {
   try {
     const pool = await poolPromise;
@@ -139,29 +142,106 @@ export const getStudentExams = async (req: any, res: Response) => {
   }
 };
 
+// POST /api/student/feedback  ─  Submit feedback + NLP sentiment via ML server
 export const submitFeedback = async (req: any, res: Response) => {
   try {
-    const { courseCode, sentiment, feedbackText } = req.body;
+    const { courseId, feedbackText } = req.body;
+
+    if (!courseId || !feedbackText || !feedbackText.trim())
+      return res.status(400).json({ error: 'courseId and feedbackText are required.' });
+    if (feedbackText.trim().length < 5)
+      return res.status(400).json({ error: 'Feedback must be at least 5 characters.' });
+
     const pool = await poolPromise;
-    await pool.request()
+
+    // 1. Resolve StudentID from JWT userId
+    const stRes = await pool.request()
       .input('userId', sql.Int, req.user.userId)
-      .input('courseCode', sql.NVarChar, courseCode)
-      .input('sentiment', sql.NVarChar, sentiment)
-      .input('text', sql.NVarChar, feedbackText)
+      .query('SELECT StudentID FROM Student WHERE UserID = @userId');
+    if (stRes.recordset.length === 0)
+      return res.status(404).json({ error: 'Student not found.' });
+    const studentId = stRes.recordset[0].StudentID;
+
+    let sentiment = 'Neutral';
+    let confidence = 0;
+    let probabilities = { Negative: 0, Neutral: 100, Positive: 0 };
+    let threshold_applied = false;
+    let latency_ms = 0;
+    let ml_unavailable = false;
+
+    // 2. Call NLP ML model for sentiment
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const mlRes = await fetch(`${ML_API}/predict-sentiment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback_text: feedbackText.trim() }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (mlRes.ok) {
+        const mlData: any = await mlRes.json();
+        sentiment         = mlData.sentiment;
+        confidence        = mlData.confidence;
+        probabilities     = mlData.probabilities;
+        threshold_applied = mlData.threshold_applied;
+        latency_ms        = mlData.latency_ms;
+      } else {
+        ml_unavailable = true;
+      }
+    } catch (mlErr: any) {
+      // ML server is down → fallback to Neutral, still save feedback
+      ml_unavailable = true;
+    }
+
+    // 3. Save to DB
+    await pool.request()
+      .input('studentId',    sql.Int,            studentId)
+      .input('courseId',     sql.Int,            parseInt(courseId))
+      .input('feedbackText', sql.NVarChar(2000), feedbackText.trim())
+      .input('sentiment',    sql.NVarChar(10),   sentiment)
       .query(`
-        INSERT INTO Feedback (StudentID, CourseID, FeedbackText, Sentiment)
-        SELECT 
-            (SELECT StudentID FROM Student WHERE UserID = @userId),
-            (SELECT CourseID FROM Course WHERE Code = @courseCode),
-            @text,
-            @sentiment
+        INSERT INTO Feedback (StudentID, CourseID, FeedbackText, Sentiment, SubmittedAt)
+        VALUES (@studentId, @courseId, @feedbackText, @sentiment, SYSUTCDATETIME())
       `);
-    res.json({ message: 'Feedback submitted successfully' });
-  } catch (err) {
+
+    return res.json({
+      success: true, sentiment, confidence, probabilities,
+      threshold_applied, latency_ms, ml_unavailable,
+      message: ml_unavailable
+        ? 'Feedback saved. ML analysis unavailable — classified as Neutral.'
+        : 'Your feedback was analyzed and saved successfully.'
+    });
+  } catch (err: any) {
     console.error('Error submitting feedback:', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 };
+
+// GET /api/student/feedback  ─  Student views their own feedback history
+export const getFeedbackHistory = async (req: any, res: Response) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request()
+      .input('userId', sql.Int, req.user.userId)
+      .query(`
+        SELECT f.FeedbackID, c.Code AS CourseCode, c.Name AS CourseName,
+               f.FeedbackText, f.Sentiment, f.SubmittedAt
+        FROM Feedback f
+        JOIN Course c  ON c.CourseID  = f.CourseID
+        JOIN Student s ON s.StudentID = f.StudentID
+        WHERE s.UserID = @userId
+        ORDER BY f.SubmittedAt DESC
+      `);
+    res.json(result.recordset);
+  } catch (err: any) {
+    console.error('Error fetching feedback history:', err);
+    res.status(500).json({ error: err.message || 'Server error' });
+  }
+};
+
 
 export const registerCourse = async (req: any, res: Response) => {
   try {
@@ -222,7 +302,7 @@ export const getMyRiskFactors = async (req: any, res: Response) => {
     let midterm = 0, quiz1 = 0, quiz2 = 0;
     let quizCount = 0;
     
-    examsRes.recordset.forEach(row => {
+    examsRes.recordset.forEach((row: any) => {
       if (row.ExamType === 'Midterm') midterm = row.Score;
       if (row.ExamType === 'Quiz') {
         quizCount++;
