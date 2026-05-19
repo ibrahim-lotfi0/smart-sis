@@ -245,6 +245,14 @@
           Course Feedback
         </a>
         <p class="nav-section-title">Account</p>
+        <a class="nav-link" data-section="sec-risk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Risk Analysis
+        </a>
         <a class="nav-link" data-section="sec-profile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
@@ -560,8 +568,12 @@
             </div>
           </div>
 
+        </section>
+
+        <!-- Risk Analysis -->
+        <section class="page-section" id="sec-risk">
           <!-- ── ML Risk Analysis Card ── -->
-          <div class="card fade-up" style="margin-top:1.5rem;">
+          <div class="card fade-up">
             <div class="card-header">
               <div>
                 <div class="card-title">🤖 ML Risk Analysis</div>
@@ -715,13 +727,24 @@
 
       async function loadData() {
         try {
-          const [profile, grades, attendance, courses, schedule, exams] = await Promise.all([
+          const [profile, grades, attendance, courses, schedule, exams, factorsRes] = await Promise.all([
             studentApi.profile(), studentApi.grades(), studentApi.attendance(),
-            studentApi.courses(), studentApi.schedule(), studentApi.exams()
+            studentApi.courses(), studentApi.schedule(), studentApi.exams(),
+            fetch('http://localhost:5000/api/student/my-risk-factors', {
+              headers: { Authorization: 'Bearer ' + localStorage.getItem('sis_token') }
+            }).catch(() => ({ ok: false }))
           ]);
 
           _myProfile = profile;   // save for ML call
           _myCourses = courses;   // save for feedback dropdown
+          
+          if (factorsRes && factorsRes.ok) {
+            const factors = await factorsRes.json();
+            document.getElementById('ml-disp-att').textContent = `Attendance: ${parseFloat(factors.attendance).toFixed(1)}%`;
+            document.getElementById('ml-disp-mid').textContent = `Midterm: ${factors.midterm}/20`;
+            document.getElementById('ml-disp-q1').textContent = `Quiz 1: ${factors.quiz1}/10`;
+            document.getElementById('ml-disp-q2').textContent = `Quiz 2: ${factors.quiz2}/10`;
+          }
 
           // ── Official Bylaws Warnings ───────────────────────────────────────────────
           let warningsHTML = '';

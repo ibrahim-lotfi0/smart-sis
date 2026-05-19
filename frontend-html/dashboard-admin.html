@@ -663,10 +663,6 @@
         <div class="risk-level-text" id="ml-risk-level">—</div>
         <div class="risk-conf-text" id="ml-confidence" style="display: none !important;">—</div>
         <div class="risk-probs" id="ml-probs" style="display: none !important;"></div>
-        <div class="risk-recs">
-          <strong>Recommendations:</strong>
-          <ul id="ml-recs"></ul>
-        </div>
       </div>
 
       <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1rem;">
@@ -765,8 +761,8 @@
         document.getElementById('ml-probs').innerHTML = Object.entries(data.probabilities)
           .map(([k, v]) => `<span class="risk-prob-item">${k}: ${v}%</span>`).join('');
 
-        document.getElementById('ml-recs').innerHTML = data.recommendations
-          .map(r => `<li>${r}</li>`).join('');
+        // document.getElementById('ml-recs').innerHTML = data.recommendations
+        //   .map(r => `<li>${r}</li>`).join('');
 
         document.getElementById('ml-save-btn').style.display = 'inline-block';
       } catch (err) {
@@ -775,7 +771,7 @@
         document.getElementById('ml-risk-level').textContent = '⚠️ Error';
         document.getElementById('ml-confidence').textContent = err.message;
         document.getElementById('ml-probs').innerHTML = '';
-        document.getElementById('ml-recs').innerHTML = '<li>Check console and make sure backend/ML server are running.</li>';
+        // document.getElementById('ml-recs').innerHTML = '<li>Check console and make sure backend/ML server are running.</li>';
       }
     }
 
