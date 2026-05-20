@@ -472,12 +472,13 @@ export const getStudentRiskFactors = async (req: Request, res: Response) => {
 
     // Fetch Exams for CS101 (or latest exams) to capture Midterm, Quiz 1, Quiz 2
     const examsRes = await pool.request()
-      .input('id', sql.Int, id)
+      .input('studentId', sql.Int, id)
       .query(`
         SELECT e.ExamType, e.ExamDate, eg.Score, eg.MaxScore
         FROM ExamGrade eg
         JOIN Exam e ON e.ExamID = eg.ExamID
-        WHERE eg.StudentID = @id
+        JOIN Student s ON s.StudentID = eg.StudentID
+        WHERE s.StudentID = @studentId AND e.CourseID = (SELECT CourseID FROM Course WHERE Code='CS101')
         ORDER BY e.ExamDate ASC
       `);
 

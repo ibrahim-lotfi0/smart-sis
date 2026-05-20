@@ -295,7 +295,7 @@ export const getMyRiskFactors = async (req: any, res: Response) => {
         FROM ExamGrade eg
         JOIN Exam e ON e.ExamID = eg.ExamID
         JOIN Student s ON s.StudentID = eg.StudentID
-        WHERE s.UserID = @uid
+        WHERE s.UserID = @uid AND e.CourseID = (SELECT CourseID FROM Course WHERE Code='CS101')
         ORDER BY e.ExamDate ASC
       `);
 
